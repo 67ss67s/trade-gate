@@ -35,10 +35,11 @@ export function AgentSide() {
   const currentSessionId = readSavedSession();
   const [tab, setTab] = useState<Tab>(() => {
     try {
+      // Default to the execution tab: that is where a new user sets up binance-cli / Binance MCP.
       const v = window.localStorage.getItem(TAB_KEY) as Tab | null;
-      return v === 'execution' ? v : 'status';
+      return v === 'status' ? v : 'execution';
     } catch {
-      return 'status';
+      return 'execution';
     }
   });
   const pick = (t: string) => {
