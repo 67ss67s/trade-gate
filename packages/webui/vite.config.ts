@@ -15,7 +15,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:18800',
+        target: `http://127.0.0.1:${process.env.TG_DEMO_PORT ?? '18800'}`,
         changeOrigin: true,
         ws: false,
       },

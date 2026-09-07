@@ -8,19 +8,22 @@
 #   agent_mcp  Binance MCP Server driven through a Claude Code host session
 #   demo       the Rust executor (tgate-demo-exec) with a demo API key in ~/.trade-gate/secrets/apikey-demo.json
 # Brain (TG_DEMO_BRAIN): claude | codex | pi | stub. Unset = claude when the CLI is on PATH, else stub.
+# Ports: TG_UI_PORT (default 5180) and TG_DEMO_PORT (default 18800); both fail loudly if taken.
 # State lives in ~/.trade-gate (override with TG_DEMO_HOME); nothing is written into the repository.
 set -euo pipefail
 cd "$(dirname "$0")"
 export TG_DEMO_TF="${TG_DEMO_TF:-15m}"
 export TG_DEMO_RUN_ON_START="${TG_DEMO_RUN_ON_START:-1}"
+export TG_DEMO_PORT="${TG_DEMO_PORT:-18800}"
+UI_PORT="${TG_UI_PORT:-5180}"
 if [ "${TG_DEMO_BACKEND:-}" = "demo" ] && [ ! -x target/exec-core/release/tgate-demo-exec ]; then
   echo ">> building tgate-demo-exec (release)"; CARGO_TARGET_DIR=target/exec-core cargo build -p exec-core --bin tgate-demo-exec --release
 fi
 npm run build --workspace packages/gateway >/dev/null
 node packages/gateway/dist/demo/main.js &
 GW=$!
-npm run dev --workspace packages/webui -- --host 127.0.0.1 --port 5180 &
+npm run dev --workspace packages/webui -- --host 127.0.0.1 --port "$UI_PORT" --strictPort &
 UI=$!
 trap 'kill $GW $UI 2>/dev/null; wait 2>/dev/null; exit 0' INT TERM
-echo ">> UI http://127.0.0.1:5180   API http://127.0.0.1:18800/api/overview"
+echo ">> UI http://127.0.0.1:$UI_PORT   API http://127.0.0.1:$TG_DEMO_PORT/api/overview   (ports: TG_UI_PORT / TG_DEMO_PORT)"
 wait

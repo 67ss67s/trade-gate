@@ -45,7 +45,7 @@ scans end there — which is the point.
 ```bash
 git clone https://github.com/67ss67s/trade-gate && cd trade-gate
 npm install
-./start-demo.sh            # gateway on :18800, UI on http://127.0.0.1:5180
+./start-demo.sh            # prints the UI URL — http://127.0.0.1:5180 by default (TG_UI_PORT / TG_DEMO_PORT to change)
 ```
 
 That is a complete, key-less run: public Binance futures market data, an in-process **paper** account, and
@@ -61,7 +61,7 @@ nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` execu
    ```bash
    git clone https://github.com/67ss67s/trade-gate && cd trade-gate && npm install
    ```
-3. **First run, no keys** — `./start-demo.sh`, then open http://127.0.0.1:5180. Public Binance market data,
+3. **First run, no keys** — `./start-demo.sh` and open the UI URL it prints (http://127.0.0.1:5180 unless you set `TG_UI_PORT`; the API is on `TG_DEMO_PORT`, default 18800). Public Binance market data,
    an in-process paper account, and the thesis formed by Claude Code if installed, otherwise by a
    deterministic stub. Nothing is written into the repository; state lives in `~/.trade-gate`.
 4. **Watch a cycle** — the home page shows the five stations. *Intel* runs the information officer,
@@ -159,7 +159,7 @@ Open the home page and scroll below the five stations. The second layer watches 
 `E1..En`), **Strategy Lab** (pre-registered experiments on replayable episodes), **Captain & Council**
 (daily brief and cross-role hand-offs), **Portfolio & Risk Sentinel** (cluster exposure, correlated stops,
 capacity), and the **Ops Floor** (one screen where every role sits at its desk). They exist in our private
-build, are being productised, and are not part of this release. [`docs/ROADMAP.md`](docs/ROADMAP.md) says
+build and are still in testing; they will be added to this repository as they pass. Not part of this release. [`docs/ROADMAP.md`](docs/ROADMAP.md) says
 what each one plugs into.
 
 ## Repository map
