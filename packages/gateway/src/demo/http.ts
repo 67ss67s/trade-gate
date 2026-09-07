@@ -401,12 +401,15 @@ export function createServer(rt: DemoRuntime, store: DemoStore, options: ServerO
     res.on('close', () => sse.delete(res));
   });
 
-  const ALLOWED_ORIGINS = new Set(['http://127.0.0.1:5180', 'http://localhost:5180', `http://127.0.0.1:${process.env['TG_DEMO_PORT'] ?? '18800'}`]);
+  // CSRF guard for writes: any loopback origin is ours (the UI port is configurable via TG_UI_PORT); extra
+  // origins can be listed in TG_ALLOWED_ORIGINS (comma-separated).
+  const EXTRA_ORIGINS = new Set((process.env['TG_ALLOWED_ORIGINS'] ?? '').split(',').map((o) => o.trim()).filter(Boolean));
+  const originAllowed = (origin: string): boolean => EXTRA_ORIGINS.has(origin) || /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/.test(origin);
   return http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1');
     // Browser requests must come from our own UI; non-browser callers (no Origin) are local tools.
     const origin = req.headers.origin;
-    if (origin && !ALLOWED_ORIGINS.has(origin) && req.method !== 'GET') return fail(res, 403, `origin ${origin} not allowed`, 'forbidden');
+    if (origin && !originAllowed(origin) && req.method !== 'GET') return fail(res, 403, `origin ${origin} not allowed`, 'forbidden');
     if (req.method === 'OPTIONS') {
       res.writeHead(204, { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers': 'content-type' });
       return res.end();

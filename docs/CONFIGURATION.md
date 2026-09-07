@@ -37,6 +37,7 @@ repository. **Factory reset** = delete `~/.trade-gate/demo/state.sqlite`.
 | `TG_DEMO_RUN_ON_START` | `1` | run the information officer and a first scan on boot |
 | `TG_DEMO_JUDGMENT_CAP` | `300` | daily judgment cap (0 = unlimited) |
 | `TG_DEMO_SHOWCASE` | unset | `1` = 1-minute timeframe, 3-minute information officer, narration on — everything visible within ~10 minutes |
+| `TG_ALLOWED_ORIGINS` | unset | extra browser origins allowed to POST (any loopback origin is always allowed) |
 | `BINANCE_API_ENV` | `demo` | passed through to `binance-cli`; keep `demo` |
 
 Model CLIs can be launched through a shell alias or an env-prefixed command: edit `cli_commands` in the
