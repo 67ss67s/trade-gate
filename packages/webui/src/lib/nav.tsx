@@ -1,11 +1,11 @@
-import { ArrowLeftRight, Bot, ClipboardList, Crosshair, Eye, FileClock, Home, Library, Radar, Rewind, ScrollText, Settings, type LucideIcon } from 'lucide-react';
+import { ArrowLeftRight, Bot, LayoutGrid, ClipboardList, Crosshair, Eye, FileClock, Home, Library, Radar, Rewind, ScrollText, Settings, type LucideIcon } from 'lucide-react';
 import { t, tmap } from '@/lib/i18n';
 
 // 侧栏 = 五个工位的流水线顺序:总览 → Radar(信息员 / 筛选 / 盯盘参数)→ Thesis(Agent / 判断记录)
 // → Strategy(策略库 / 回放)→ Execution(交易 / 复盘)→ 系统(日志 / 设置)。
 // 风控没有独立页:闸门参数在工作流表单与设置页里,闸门结果在判断记录里。
 
-export type Page = 'home' | 'trade' | 'agent' | 'watch' | 'intel' | 'screener' | 'judgments' | 'history' | 'replay' | 'strategies' | 'logs' | 'settings';
+export type Page = 'home' | 'floor' | 'trade' | 'agent' | 'watch' | 'intel' | 'screener' | 'judgments' | 'history' | 'replay' | 'strategies' | 'logs' | 'settings';
 
 export type NavGroup = 'overview' | 'radar' | 'thesis' | 'strategy' | 'execution' | 'system';
 
@@ -29,6 +29,7 @@ export interface NavItem {
 
 export const NAV: NavItem[] = [
   { id: 'home', label: '首页', icon: Home, group: 'overview' },
+  { id: 'floor', label: '楼层', icon: LayoutGrid, group: 'overview' },
   { id: 'intel', label: '信息员', icon: Radar, group: 'radar' },
   { id: 'screener', label: '筛选', icon: Crosshair, group: 'radar' },
   { id: 'watch', label: '盯盘参数', icon: Eye, group: 'radar' },

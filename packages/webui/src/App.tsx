@@ -67,6 +67,7 @@ import { api, useLiveEvents } from '@/api/client';
 import type { Page } from '@/lib/nav';
 import { t, useLang } from '@/lib/i18n';
 import { HomePage } from '@/pages/home';
+import { FloorPage } from '@/pages/floor';
 import { TradePage } from '@/pages/trade';
 import { AgentPage } from '@/pages/agent';
 import { IntelPage } from '@/pages/intel';
@@ -80,7 +81,7 @@ import { StrategiesPage } from '@/pages/strategies';
 import { LogsPage } from '@/pages/logs';
 import { SettingsPage } from '@/pages/settings';
 
-const PAGE_IDS: Page[] = ['home', 'trade', 'agent', 'watch', 'intel', 'screener', 'judgments', 'history', 'replay', 'strategies', 'logs', 'settings'];
+const PAGE_IDS: Page[] = ['home', 'floor', 'trade', 'agent', 'watch', 'intel', 'screener', 'judgments', 'history', 'replay', 'strategies', 'logs', 'settings'];
 
 const LAST_PAGE_KEY = 'tg.page.last';
 
@@ -286,6 +287,7 @@ export default function App() {
           <main className="min-h-0 flex-1 overflow-auto p-3">
             <PageErrorBoundary page={page}>
             {page === 'home' ? <HomePage /> : null}
+            {page === 'floor' ? <FloorPage connected={connected} /> : null}
             {page === 'trade' ? <TradePage /> : null}
             {page === 'agent' ? <AgentPage /> : null}
             {page === 'intel' ? <IntelPage /> : null}

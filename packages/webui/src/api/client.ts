@@ -14,13 +14,17 @@ import type {
   BrainTestResult,
   ChatMessagesResponse,
   ChatSendResponse,
+  BotRole,
   ChatSession,
   ChatSessionsResponse,
   DemoIntent,
   Episode,
   EpisodeSummary,
+  BinanceMapResponse,
+  BinanceMapTestResponse,
   ExecutionConnectResponse,
   ExecutionView,
+  McpToolMap,
   GraphResponse,
   HistoryResponse,
   InfoEventsResponse,
@@ -35,6 +39,13 @@ import type {
   ManualOrderResponse,
   MarketState,
   MarketStateHistoryResponse,
+  MemoryCreateRequest,
+  MemoryDetailResponse,
+  MemoryItem,
+  MemoryListResponse,
+  MemoryReflectResponse,
+  MemorySearchResponse,
+  MemoryStatus,
   Overview,
   RegimeResponse,
   ScanNowResponse,
@@ -58,13 +69,26 @@ import type {
   StrategyRetireResponse,
   StrategySpec,
   StrategyStatus,
+  BotHandoffAckResponse,
+  BotHandoffsResponse,
+  BotsResponse,
+  HandoffStatus,
   ScreenerApplyResponse,
   ScreenerDetailResponse,
   ScreenerHistoryResponse,
   ScreenerLatestResponse,
   ScreenerRunResponse,
   ScreenHorizon,
+  PortfolioSnapshotResponse,
+  PortfolioCapacityResponse,
+  RiskAlertRow,
+  RiskAlertAction,
   ProtectionStatusView,
+  RiskAlertsResponse,
+  ReviewerBatchResponse,
+  ReviewerCardsResponse,
+  LabExperimentsResponse,
+  CaptainBriefResponse,
 } from './types';
 
 class ApiRequestError extends Error {
@@ -93,6 +117,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 function post<T>(path: string, payload?: unknown): Promise<T> {
   return request<T>(path, { method: 'POST', body: payload === undefined ? undefined : JSON.stringify(payload) });
+}
+
+/** post() 的任意方法版(目前只有 PUT /api/binance/map 用得上)。 */
+function send<T>(method: string, path: string, payload?: unknown): Promise<T> {
+  return request<T>(path, { method, body: payload === undefined ? undefined : JSON.stringify(payload) });
 }
 
 export const api = {
@@ -170,7 +199,7 @@ export const api = {
   resetChat: (session?: string) => post<void>('/api/chat/reset', session ? { session } : undefined),
   // ---- v3.8(§9.14)对话会话。default 不能删(409);can_execute 自 §9.19 起只是前端偏好(意图卡是否显示执行按钮),后端不据它放行任何东西。
   chatSessions: (archived = false) => request<ChatSessionsResponse>(`/api/chat/sessions${archived ? '?archived=1' : ''}`),
-  createChatSession: (title?: string) => post<{ session: ChatSession }>('/api/chat/sessions', title ? { title } : {}),
+  createChatSession: (title?: string, role?: BotRole) => post<{ session: ChatSession }>('/api/chat/sessions', { ...(title ? { title } : {}), ...(role ? { role } : {}) }),
   updateChatSession: (id: string, patch: { title?: string; archived?: boolean; can_execute?: boolean }) => post<{ session: ChatSession }>(`/api/chat/sessions/${encodeURIComponent(id)}`, patch),
   deleteChatSession: (id: string) => request<void>(`/api/chat/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
@@ -190,8 +219,38 @@ export const api = {
   // §9.20 止损保护验证:网关自己用最小仓跑一遍 开→挂止损→确认→撤→平;202 started / 409 busy
   executionProtection: () => request<{ protection: ProtectionStatusView }>('/api/execution/protection'),
   verifyProtection: (symbol?: string) => post<{ started: boolean; protection: ProtectionStatusView }>('/api/execution/verify-protection', { confirm: true, ...(symbol ? { symbol } : {}) }),
+  /** §9.20 告警自带动作:按 method/path/body 原样调 */
+  alertAction: (a: RiskAlertAction) => send<unknown>(a.method, a.path, a.method === 'GET' ? undefined : (a.body ?? {})),
   executionCheck: () => post<ExecutionView>('/api/execution/check'),
   executionConnect: () => post<ExecutionConnectResponse>('/api/execution/connect'),
+
+  // ---- v3.4:币安 MCP 直连的工具映射(§9.8)—— 推断 → 编辑 → 只读测试 → 确认 ------------
+  binanceMap: () => request<BinanceMapResponse>('/api/binance/map'),
+  binanceMapPropose: () => post<BinanceMapResponse>('/api/binance/map/propose'),
+  binanceMapPut: (map: McpToolMap | Record<string, unknown>) => send<BinanceMapResponse>('PUT', '/api/binance/map', map),
+  binanceMapConfirm: () => post<BinanceMapResponse>('/api/binance/map/confirm'),
+  binanceMapTest: (symbol?: string) => post<BinanceMapTestResponse>('/api/binance/map/test', symbol ? { symbol } : undefined),
+
+  // ---- v3.2:长期记忆(design notes)—— 提案 → 人工批准 → 召回进证据 --------
+  memoryList: (status?: MemoryStatus[] | string, symbol?: string, limit = 300) => {
+    const qs = new URLSearchParams();
+    const statusParam = Array.isArray(status) ? status.join(',') : status;
+    if (statusParam) qs.set('status', statusParam);
+    if (symbol) qs.set('symbol', symbol);
+    if (limit) qs.set('limit', String(limit));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<MemoryListResponse>(`/api/memory${suffix}`);
+  },
+  memorySearch: (q: string, symbol?: string) => {
+    const qs = new URLSearchParams({ q });
+    if (symbol) qs.set('symbol', symbol);
+    return request<MemorySearchResponse>(`/api/memory/search?${qs.toString()}`);
+  },
+  memoryDetail: (id: string) => request<MemoryDetailResponse>(`/api/memory/${encodeURIComponent(id)}`),
+  memoryCreate: (body: MemoryCreateRequest) => post<{ item: MemoryItem }>('/api/memory', body),
+  memoryAction: (id: string, action: 'approve' | 'reject' | 'forget', reason?: string) =>
+    post<{ item: MemoryItem }>(`/api/memory/${encodeURIComponent(id)}/${action}`, reason ? { reason } : undefined),
+  memoryReflect: (limit?: number) => post<MemoryReflectResponse>('/api/memory/reflect', limit ? { limit } : undefined),
 
   // ---- v3.4:回放与盲测(design notes)------------------------
   // 花钱的只有 startBacktest;调它之前必须先 backtestEstimate() 并让用户在确认框里看到 ¥。
@@ -252,7 +311,7 @@ export const api = {
   backtestAttribution: (id: string) => request<BacktestAttributionResponse>(`/api/backtest/${encodeURIComponent(id)}/attribution`),
   runBacktestAttribution: (id: string) => post<BacktestAttributeResponse>(`/api/backtest/${encodeURIComponent(id)}/attribute`),
 
-  // ---- v3.6:雷达 / 筛选器(网关 src/demo/screener.ts)-----------------------------
+  // ---- v3.6:雷达 / 筛选器 + 机器人团队(网关 src/demo/screener.ts、bots.ts)-----------
   // runScreener 会花钱(可选的便宜大脑那一遍)且可能被 409 拒(该 horizon 正在跑 / 运行时暂停);
   // applyScreen 只改 workflow.watchlist 一个字段,调用前必须先给人看 before → after 的 diff。
   screenerLatest: (horizon: ScreenHorizon) => request<ScreenerLatestResponse>(`/api/screener/latest?horizon=${horizon}`),
@@ -263,6 +322,31 @@ export const api = {
   /** watchlist = 用户勾选后的最终名单;不传就整包应用提案。 */
   applyScreen: (id: string, watchlist?: string[]) =>
     post<ScreenerApplyResponse>(`/api/screener/${encodeURIComponent(id)}/apply`, watchlist ? { watchlist } : {}),
+  bots: () => request<BotsResponse>('/api/bots'),
+  botHandoffs: (status?: HandoffStatus, limit = 20) => {
+    const qs = new URLSearchParams();
+    if (status) qs.set('status', status);
+    if (limit) qs.set('limit', String(limit));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<BotHandoffsResponse>(`/api/bots/handoffs${suffix}`);
+  },
+  ackHandoff: (id: string) => post<BotHandoffAckResponse>(`/api/bots/handoffs/${encodeURIComponent(id)}/ack`),
+  // ---- v3.7:Portfolio / Risk(gateway 65bb92a)。resolve 只对 recovery_ready 的 high/critical 生效,否则 409。
+  portfolioSnapshot: () => request<PortfolioSnapshotResponse>('/api/portfolio/snapshot'),
+  /** §9.18 组合容量:还能开几条、每币可做/要多少权益 */
+  portfolioCapacity: () => request<PortfolioCapacityResponse>('/api/portfolio/capacity'),
+  riskAlerts: (status: 'open' | 'resolved' | 'all' = 'open') => request<RiskAlertsResponse>(`/api/risk/alerts?status=${status}`),
+  ackRiskAlert: (id: string) => post<{ alert: RiskAlertRow }>(`/api/risk/alerts/${encodeURIComponent(id)}/ack`),
+  resolveRiskAlert: (id: string) => post<{ alert: RiskAlertRow }>(`/api/risk/alerts/${encodeURIComponent(id)}/resolve`),
+  riskEvaluate: () => post<RiskAlertsResponse>('/api/risk/evaluate'),
+  // ---- v3.8:Reviewer(gateway 7102cd3)。batch 会调便宜大脑(≤ 2 次/天),409 = 不该跑。
+  reviewerCards: (limit = 20) => request<ReviewerCardsResponse>(`/api/reviewer/cards?limit=${limit}`),
+  reviewerBatch: () => post<ReviewerBatchResponse>('/api/reviewer/batch'),
+  // ---- v3.9:Strategy Lab / Gate Captain(gateway c19646d,零模型)。labRun 202 跑几十秒,同 manifest 24h 内返回上一次。
+  labExperiments: (limit = 10) => request<LabExperimentsResponse>(`/api/lab/experiments?limit=${limit}`),
+  labRun: () => post<{ run_id?: string; reason?: string }>('/api/lab/run'),
+  captainBrief: () => request<CaptainBriefResponse>('/api/captain/brief'),
+  captainBriefNow: () => post<CaptainBriefResponse>('/api/captain/brief'),
 };
 
 export { ApiRequestError };
@@ -284,11 +368,16 @@ const EVENT_NAMES: (keyof ServerEventMap)[] = [
   'queue.state',
   'workflow.changed',
   'activity',
+  'memory.changed',
   'execution.changed',
   'backtest.progress',
   'backtest.changed',
   // v3.6
   'screener.changed',
+  'bots.changed',
+  // v3.7
+  'portfolio.changed',
+  'risk.changed',
 ];
 
 /**

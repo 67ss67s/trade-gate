@@ -28,7 +28,7 @@ export type Direction = 'long' | 'short';
  * (每笔下单交给 claude/codex 子进程调币安 MCP)。老网关只会返回前两个,前端一律
  * 用 backendLabel() 兜底翻译,不做穷举 switch。
  */
-export type Backend = 'paper' | 'demo' | 'cli' | 'agent_mcp';
+export type Backend = 'paper' | 'demo' | 'cli' | 'agent_mcp' | 'mcp';
 
 export interface Strategy {
   id: string;
@@ -235,6 +235,8 @@ export interface Episode {
   strategy_after: { state: StrategyState; version: number } | null;
   /** v3:判断图上的位置(有则显示,无则忽略)。illegal_action 非空 = 模型第一次输出了该节点不允许的动作(之后被修正或 fail-closed,edge 是最终走的边)。 */
   graph?: { version: string; node: string; edge: string | null; guards: string[]; illegal_action?: string | null };
+  /** v3.2:注入本次上下文的记忆 id 与判断实际引用的子集。 */
+  memory?: { injected: string[]; cited: string[] };
 }
 
 // 列表/时间线用的精简形状——GET /api/episodes 和 episode.finished SSE 都是这个形状,
@@ -317,7 +319,7 @@ export interface LoopView {
   every_ms: number;
   next_at: number | null;
   last_episode_id: string | null;
-  brain: string; // brain name, e.g. claude:sonnet
+  brain: string; // 判断/对话大脑名,形如 pi:claude:sonnet
   cheap_brain: string; // 信息员大脑名
   backend: Backend;
   auto_approve: boolean;
@@ -407,6 +409,7 @@ export interface GraphResponse {
 }
 
 export interface Workflow {
+  sizing_agent: 'off' | 'advise' | 'apply';
   watchlist: string[]; // 默认 ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT']
   /** §9.16(14e57a3):watchlist 的子集 = 只观察不交易(判断只能 NO_TRADE/WATCH) */
   watch_only: string[];
@@ -500,6 +503,25 @@ export interface ExecutionConnection {
   detail: string;
 }
 
+/**
+ * 网关自己那套币安 OAuth 的状态(GET /api/execution 的 `oauth` 字段、GET /api/binance/status)。
+ * 币安不发 refresh_token,`expires_at` 到了就得重新点一次「连接币安」。
+ */
+export interface BinanceOauthStatus {
+  /** 配了 TG_BINANCE_OAUTH_CLIENT_ID(托管 client-metadata.json 的 https 地址)才为 true。 */
+  configured: boolean;
+  connected: boolean;
+  client_id: string | null;
+  redirect_uri?: string;
+  resource?: string;
+  expires_at: number | null;
+  scope?: string | null;
+  /** configured 为 false 时的原因。 */
+  missing: string | null;
+}
+
+/** GET /api/execution、POST /api/execution/check 同形。 */
+/** §9.20:agent_mcp 通道的止损保护验证状态(产品自己验证自己解锁,不再有环境变量) */
 export interface NetCheckResult {
   backend: string;
   started_at: number;
@@ -541,6 +563,8 @@ export interface ExecutionView {
   connection: ExecutionConnection;
   can_switch: boolean;
   switch_blocker: string | null;
+  /** 老网关没有这个字段;null = 网关没配 OAuth(只能走 agent_mcp 那条路)。 */
+  oauth?: BinanceOauthStatus | null;
   /** v3.11:上次账户读取失败(读成功后清空);非空 → 「执行通道账户不可读」 */
   account_read_error?: { at: number; message: string } | null;
   /** v3.11:false → 「币安子账户未入金」;null = 未知 */
@@ -549,6 +573,8 @@ export interface ExecutionView {
 
 /**
  * POST /api/execution/connect。
+ * - `url` 有值 = 网关自己的 OAuth 授权页;币安 3346001 之后这条路默认关掉了(只有
+ *   TG_BINANCE_OAUTH_FORCE=1 才会再出现),前端仍然兼容;
  * - started=true = 网关已经弹了一个终端窗口跑交互式 `claude "/mcp"`,用户在里面选
  *   binance-mcp-server → Authenticate;
  * - started=false = 弹不出来(非 macOS 等),把 instructions 显示给用户自己去终端跑。
@@ -559,6 +585,85 @@ export interface ExecutionConnectResponse {
   url?: string;
 }
 
+// ---------------------------------------------------------------------------
+// v3.4:币安 MCP 直连(mcp 后端)的工具映射 —— /api/binance/map*(v3-ui-contract §9.8)
+// 网关拿到 OAuth token 后自己跑 tools/list,按启发式给出「操作 → 工具」草案;人核对(可改 JSON)、
+// 跑只读测试、确认之后,mcp 后端才可选。没映射到的操作一律拒绝执行,不猜工具名。
+
+export type McpOp =
+  | 'account'
+  | 'positions'
+  | 'open_orders'
+  | 'place_market'
+  | 'place_limit'
+  | 'place_stop_market_close'
+  | 'place_take_profit_close'
+  | 'cancel_order'
+  | 'cancel_all'
+  | 'get_order'
+  | 'set_leverage'
+  | 'set_margin_type'
+  | 'mark_price';
+
+/** args 是模板:值恰好是 ${x} 时按类型注入,本次没有该值的键会被丢掉。 */
+export interface McpOpMapping {
+  tool: string;
+  args: Record<string, string | number | boolean | null>;
+  result?: { order_id?: string; avg_price?: string; status?: string; executed_qty?: string; root?: string };
+  /** 启发式置信度 0–1;手工改过的映射可能没有。 */
+  confidence?: number;
+  /** 这个操作需要、但该工具的 inputSchema 里没有的参数名。 */
+  missing?: string[];
+  note?: string;
+}
+
+export interface McpToolMap {
+  version: number;
+  /** proposed 永远不会真的下单:mcp 后端只认 confirmed。 */
+  status: 'proposed' | 'confirmed';
+  source: 'heuristic' | 'manual';
+  updated_at: number;
+  ops: Partial<Record<McpOp, McpOpMapping>>;
+  notes: string[];
+}
+
+/** GET /api/binance/map、PUT /api/binance/map、POST /api/binance/map/propose|confirm 同形。 */
+export interface BinanceMapResponse {
+  map: McpToolMap | null;
+  tools_count: number;
+  tools_at: number | null;
+  proposal_notes: string[];
+  /** 还没映射的必需操作;非空时 confirm 会被拒。 */
+  unmapped_required: McpOp[];
+  ops: McpOp[];
+  placeholders: string[];
+  /** 可直接交给人(或订阅制 CLI)校对的提示词。 */
+  review_prompt: string | null;
+  /** propose 专有:true = 这次真的重新抓了工具清单。 */
+  refreshed?: boolean;
+  errors?: string[];
+}
+
+export interface McpReadTestRow {
+  op: McpOp;
+  tool: string | null;
+  ok: boolean;
+  ms: number;
+  args: Record<string, unknown> | null;
+  /** 回包 JSON 的前 600 字符,用来核对字段名。 */
+  sample: string | null;
+  error: string | null;
+}
+
+/** POST /api/binance/map/test —— 只跑 account/positions/open_orders/mark_price,永远不写。 */
+export interface BinanceMapTestResponse {
+  symbol: string;
+  results: McpReadTestRow[];
+  ok_count: number;
+  total: number;
+}
+
+/** GET /api/overview 的 usage_today:今日判断次数 / token / 估算花费 / 上限。 */
 export interface UsageToday {
   judgments: number;
   input_tokens: number;
@@ -902,6 +1007,8 @@ export interface ChatMessagesResponse {
 export interface ChatSession {
   id: string;
   title: string;
+  /** v3.12(12c5c82):对着某个角色的会话,agent 以该角色口径回答;null = 主会话 */
+  role?: BotRole | null;
   created_at: number;
   updated_at: number;
   archived: boolean;
@@ -947,9 +1054,14 @@ export type ActivityKind =
   | 'paused'
   | 'resumed'
   | 'workflow_changed'
-  // v3.6:雷达筛选(网关 src/demo/screener.ts)
+  // v3.6: radar screener (see gateway src/demo/screener.ts)
   | 'screen_done'
-  | 'screen_failed';
+  | 'screen_failed'
+  // v3.7:风控哨兵(gateway risk.ts)
+  | 'risk_alert'
+  | 'risk_cleared'
+  // v3.9:Gate Captain 值班简报
+  | 'brief';
 
 export interface ActivityItem {
   id: string;
@@ -1036,6 +1148,8 @@ export interface RegimeResponse {
 
 // SSE event → payload 类型映射,给 client.ts 的订阅器用
 export interface ServerEventMap {
+  /** v3.2:记忆状态变化(提案/批准/拒绝/遗忘),前端只用来失效 ['memory'] 前缀。 */
+  'memory.changed': { id: string; status: MemoryStatus };
   'loop.state': LoopView;
   'episode.started': { id: string; trigger: Trigger };
   'episode.progress': { step: EpisodeStep; episode_id: string | null; at: number };
@@ -1057,6 +1171,86 @@ export interface ServerEventMap {
   activity: ActivityItem;
   // v3.3:执行后端 / MCP 连接状态变了(切后端、检查连接、OAuth 回调),前端失效 ['execution']
   'execution.changed': Partial<ExecutionView>;
+}
+
+// ---------------------------------------------------------------------------
+// v3.2 长期记忆(design notes)—— 提案 → 人工批准 → 召回进证据
+
+export type MemoryKind = 'lesson' | 'preference' | 'fact' | 'calibration';
+export type MemoryStatus = 'proposed' | 'active' | 'rejected' | 'superseded' | 'forgotten';
+export type MemoryProposer = 'agent' | 'user' | 'system';
+
+export interface MemoryScope {
+  symbol: string | null; // null = 全局
+  timeframe: string | null;
+  regime: string | null;
+}
+
+export interface MemoryItem {
+  id: string; // mem-…
+  kind: MemoryKind;
+  scope: MemoryScope;
+  content: string; // ≤ 300 字
+  source_refs: string[]; // 来源 episode/thread id
+  tags: string[];
+  confidence: number;
+  status: MemoryStatus;
+  proposed_by: MemoryProposer;
+  supersedes: string | null;
+  superseded_by: string | null;
+  created_at: number;
+  decided_at: number | null;
+  last_used_at: number | null;
+  use_count: number;
+  expires_at: number | null;
+  content_hash: string;
+}
+
+export interface MemoryEvent {
+  id: number;
+  memory_id: string;
+  at: number;
+  kind: 'proposed' | 'approved' | 'rejected' | 'forgotten' | 'superseded' | 'used' | 'expired' | 'dedup_hit';
+  detail: string | null;
+}
+
+/** GET /api/memory?status=proposed,active&symbol=&limit= */
+export interface MemoryListResponse {
+  items: MemoryItem[];
+  counts: Record<MemoryStatus, number>;
+}
+
+/** GET /api/memory/search?q=&symbol=&regime=&tags=&limit= */
+export interface MemoryRecallHit {
+  item: MemoryItem;
+  score: number;
+  why: string[];
+}
+export interface MemorySearchResponse {
+  hits: MemoryRecallHit[];
+}
+
+/** GET /api/memory/:id */
+export interface MemoryDetailResponse {
+  item: MemoryItem;
+  events: MemoryEvent[];
+}
+
+/** POST /api/memory body(用户手写,直接 active)→ 201 { item } */
+export interface MemoryCreateRequest {
+  content: string;
+  kind?: MemoryKind;
+  symbol?: string | null;
+  regime?: string | null;
+  tags?: string[];
+}
+
+/** POST /api/memory/:id/approve | reject | forget(body 可带 reason)→ { item } */
+/** POST /api/memory/reflect body { limit? } → 复盘提炼(调信息员大脑,暂停时 409) */
+export interface MemoryReflectResponse {
+  proposed: MemoryItem[];
+  skipped: number;
+  considered: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -1384,6 +1578,8 @@ export interface AttributionPoint {
   rule_said: string;
   actual: string;
   proposal: AttributionProposal;
+  /** 对应的长期记忆提案 id(status=proposed,要人批准才进上下文)。 */
+  memory_id: string | null;
   /** 人点了「采纳为新版本」后落在哪个版本上;null = 还没采纳。 */
   applied_version: number | null;
 }
@@ -1635,11 +1831,101 @@ export interface ScreenerApplyResponse {
   after: string[];
 }
 
+// ---- 机器人团队(packages/gateway/src/demo/bots.ts)----------------------------
+
+export type BotRole =
+  | 'gate_captain'
+  | 'radar'
+  | 'thread_manager'
+  | 'strategy_lab'
+  | 'portfolio_manager'
+  | 'risk_sentinel'
+  | 'reviewer'
+  | 'executor';
+
+export interface BotProfile {
+  role: BotRole;
+  name: string;
+  /** llm_ 开头 = 能自由调工具的 LLM;deterministic / hybrid = 代码;protected_service = 执行面。 */
+  kind: string;
+  description: string;
+  model_pin: string | null;
+  capabilities: string[];
+  memory_scope: string;
+  approval_boundary: string;
+  /** false = 占位,还没有真实实现;界面画灰,note 里写差什么。 */
+  enabled: boolean;
+  note: string | null;
+  sort_order: number;
+  created_at: number;
+  updated_at: number;
+}
+
+export type BotRunStatus = 'running' | 'done' | 'failed' | 'skipped';
+
+export interface BotRun {
+  id: string;
+  role: BotRole;
+  routine: string;
+  started_at: number;
+  finished_at: number | null;
+  status: BotRunStatus;
+  budget: Record<string, unknown>;
+  cost_cny: number;
+  summary: string | null;
+  error: string | null;
+  /** v3.8:routine 的输入/产物(trade_card 的 result = TradeCard;review_batch 的 result = { batch_key, proposed_memory_ids, dropped, model, latency_ms }) */
+  input?: Record<string, unknown> | null;
+  result?: Record<string, unknown> | null;
+}
+
+export type HandoffKind = 'request' | 'result' | 'review' | 'alert' | 'blocked';
+export type HandoffStatus = 'pending' | 'acked';
+
+export interface BotHandoff {
+  handoff_id: string;
+  run_id: string | null;
+  from_role: BotRole;
+  to_role: BotRole;
+  kind: HandoffKind;
+  subject: { type: string; id: string };
+  summary: string;
+  evidence_refs: string[];
+  artifact_refs: string[];
+  requested_output_schema: string | null;
+  priority: number;
+  deadline_at: number | null;
+  idempotency_key: string;
+  status: HandoffStatus;
+  created_at: number;
+  acked_at: number | null;
+  payload: Record<string, unknown> | null;
+}
+
+/** GET /api/bots */
+export interface BotsResponse {
+  bots: BotProfile[];
+  runs: BotRun[];
+  handoffs: BotHandoff[];
+}
+
+/** GET /api/bots/handoffs?status=&limit= */
+export interface BotHandoffsResponse {
+  handoffs: BotHandoff[];
+}
+
+/** POST /api/bots/handoffs/:id/ack */
+export interface BotHandoffAckResponse {
+  handoff: BotHandoff;
+}
+
 /**
  * v3.6 的 workflow 新字段。老网关没有这些字段时全是 undefined,界面按默认值兜底
  * (和 v3.3 的 execution?/cli_commands? 同一套写法)。周线周期固定 7d,不是字段。
  */
 export interface Workflow {
+  /** 09-07:Strategy Lab 自动闭环(写回 lab_stats / 自动提 draft / 数据态自动晋升);老网关没有 */
+  lab_autopilot?: boolean;
   screener_enabled?: boolean;
   screener_short_every_ms?: number;
   screener_swing_every_ms?: number;
@@ -1657,4 +1943,273 @@ export interface Workflow {
 /** v3.6 SSE(合并进上面的 ServerEventMap,不动原声明)。 */
 export interface ServerEventMap {
   'screener.changed': { screen_id: string; horizon: ScreenHorizon; status: ScreenStatus; done?: number; total?: number };
+  /** v3.9:strategy_lab 实验跑动时每币一条带 progress,结束那条没有 progress */
+  'bots.changed': { role?: BotRole; run_id?: string; progress?: { symbol: string; done: number; total: number } } & Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// v3.7:Portfolio(账户敞口,纯代码)与 Risk Sentinel(指纹告警)—— gateway 65bb92a
+
+export interface GroupExposure {
+  gross: number;
+  long: number;
+  short: number;
+  net: number;
+  /** quality≠ok 时网关不算比率 → null */
+  gross_ratio: number | null;
+}
+
+export type PortfolioQuality = 'ok' | 'stale' | 'inconsistent' | 'incomplete';
+export type RiskCluster = 'crypto_major' | 'crypto_beta' | 'equity_linked' | 'metal' | 'unknown';
+
+export interface ExposureLeg {
+  symbol: string;
+  side: Direction;
+  notional: number;
+  cluster: RiskCluster;
+  kind?: string;
+  [k: string]: unknown;
+}
+
+export interface PortfolioSnapshot {
+  snapshot_id: string;
+  observed_at: number;
+  oldest_component_at: number;
+  quality: PortfolioQuality;
+  quality_note: string | null;
+  equity: number;
+  available: number;
+  positions: GroupExposure;
+  /** 含挂单 + 待批预留 */
+  projected: GroupExposure;
+  worst_net_ratio: { low: number | null; high: number | null };
+  by_symbol: Record<string, GroupExposure>;
+  by_cluster: Partial<Record<RiskCluster, GroupExposure>>;
+  stop_budget_usdt: number;
+  stop_budget_ratio: number | null;
+  unprotected_notional: number;
+  unprotected_symbols: string[];
+  legs: ExposureLeg[];
+  economic_fingerprint: string;
+}
+
+/** GET /api/portfolio/snapshot */
+/** §9.18 组合容量(Portfolio Manager 纯代码估算,不是执行授权)。金额一律十进制字符串,算不出的字段显式 null,别 toFixed */
+export type CapacityConstraint = 'thread_slots' | 'margin_budget' | 'available_margin' | 'min_size_risk' | 'rules_unknown' | 'market_unavailable' | 'watchlist' | 'snapshot_unavailable';
+export type CapacityVerdict = 'ok' | 'needs_equity' | 'rules_unknown' | 'unavailable';
+export interface CapacitySymbol {
+  symbol: string;
+  verdict: CapacityVerdict;
+  watch_only: boolean;
+  occupied: boolean;
+  price: string | null;
+  rules_source: 'exchange' | 'paper' | null;
+  rules_observed_at: number | null;
+  stop_distance_pct: string | null;
+  stop_source: 'atr' | 'default' | null;
+  min_qty: string | null;
+  min_viable_notional: string | null;
+  min_size_risk: string | null;
+  required_equity: string | null;
+  equity_shortfall: string | null;
+  margin_per_thread: string | null;
+  risk_budget: string | null;
+  budget_margin_per_thread: string | null;
+}
+export interface DemoPortfolioCapacity {
+  schema_version?: number;
+  snapshot_id?: string | null;
+  computed_at?: number;
+  equity: string | null;
+  available: string | null;
+  risk_pct: string;
+  leverage: number;
+  default_stop_distance_pct: string;
+  slots_total: number;
+  slots_used: number;
+  slots_free: number;
+  margin_budget: {
+    max_margin_ratio: number;
+    limit_usdt: string | null;
+    committed_usdt: string | null;
+    reserved_usdt: string | null;
+    free_usdt: string | null;
+    required_for_free_slots_usdt: string | null;
+    slots_supported: number | null;
+    witness_symbols: string[];
+  };
+  binding_constraint: CapacityConstraint;
+  by_symbol: CapacitySymbol[];
+}
+export interface PortfolioCapacityResponse {
+  capacity: DemoPortfolioCapacity | null;
+  snapshot_id: string | null;
+}
+
+export interface PortfolioSnapshotResponse {
+  snapshot: PortfolioSnapshot | null;
+  /** §9.18:同 GET /api/portfolio/capacity 的 capacity;老网关没有 */
+  capacity?: DemoPortfolioCapacity | null;
+  policy: Record<string, unknown>;
+  default_policy: Record<string, unknown>;
+  cluster_map_version: string;
+  watchlist_clusters: Record<string, RiskCluster>;
+}
+
+export type RiskSeverity = 'info' | 'warn' | 'high' | 'critical';
+export type RiskLevel = 'none' | 'warn' | 'high' | 'critical';
+
+export interface RiskAlertAction {
+  kind: 'verify_protection' | 'confirm_recovery' | 'open_settings' | 'switch_backend';
+  label: string;
+  method: 'POST' | 'GET';
+  path: string;
+  body?: Record<string, unknown>;
+  /** 按钮旁小字,如费用/耗时 */
+  note?: string | null;
+}
+
+export interface RiskAlertRow {
+  id: string;
+  fingerprint: string;
+  kind: string;
+  severity: RiskSeverity;
+  scope: string;
+  title: string;
+  detail: string;
+  value: number | null;
+  threshold: number | null;
+  refs: string[];
+  auto_action: 'none' | 'block_new_risk';
+  first_seen_at: number;
+  last_seen_at: number;
+  observed_count: number;
+  resolved_at: number | null;
+  acked_at: number | null;
+  clean_streak: number;
+  /** 只有 true 的 high/critical 才能「确认恢复」;warn 连续 3 轮干净自动解除 */
+  /** §9.20:阻断类告警必须带用户可点的动作(不允许「设环境变量/重启」文案);按 method/path/body 调,成功靠 SSE 刷新 */
+  action?: RiskAlertAction | null;
+  recovery_ready: boolean;
+}
+
+/** GET /api/risk/alerts?status= */
+export interface RiskAlertsResponse {
+  alerts: RiskAlertRow[];
+  level: RiskLevel;
+  blocks_new_risk: boolean;
+}
+
+export interface ServerEventMap {
+  'portfolio.changed': { snapshot_id: string; quality: PortfolioQuality; gross_ratio: number };
+  'risk.changed': { open: number; opened: string[]; resolved: string[]; recovery_ready: string[] };
+}
+
+// ---------------------------------------------------------------------------
+// v3.8:Reviewer(平仓复盘卡 + 批量提炼教训)—— gateway 7102cd3
+
+export type TradeExitClass = 'stop' | 'take_profit' | 'model_exit' | 'invalidated' | 'canceled' | 'manual' | 'halt' | 'other';
+export type TradeOutcome = 'win' | 'loss' | 'scratch' | 'unfilled' | 'unknown';
+
+export interface TradeCard {
+  thread_id: string;
+  symbol: string;
+  side: Direction;
+  source: string;
+  strategy_id: string | null;
+  status: string;
+  filled: boolean;
+  entry_price: string | null;
+  exit_price: string | null;
+  stop_price: string | null;
+  qty: string | null;
+  realized_pnl: string | null;
+  r_multiple: number | null;
+  hold_ms: number;
+  ended_at: number | null;
+  exit_class: TradeExitClass;
+  close_reason: string | null;
+  outcome: TradeOutcome;
+  protection_ok: boolean;
+  episode_count: number;
+  notes: string[];
+}
+
+/** GET /api/reviewer/cards?limit= */
+export interface ReviewerCardsResponse {
+  cards: TradeCard[];
+  decision: { run: boolean; reason: string; pending: number; runs_today: number; last_batch_at: number | null };
+  batches: BotRun[];
+}
+
+/** POST /api/reviewer/batch:200 跑了;409 不该跑(暂停 / 没新平仓 / 今日已 2 次) */
+export interface ReviewerBatchResponse {
+  ran: boolean;
+  reason: string;
+  run_id?: string;
+}
+
+// ---------------------------------------------------------------------------
+// v3.9:Strategy Lab(机械前瞻期望实验)与 Gate Captain(值班简报)—— gateway c19646d,两者零模型
+
+export interface ExperimentManifest {
+  manifest_hash: string;
+  code_version: string;
+  timeframe: string;
+  days: number;
+  from: number;
+  to: number;
+  symbols: string[];
+  strategies: { id: string; version: number; content_hash: string; status: string }[];
+  outcome: string;
+  cooldown_bars: number;
+}
+
+export interface ExperimentCell {
+  strategy_id: string;
+  version: number;
+  symbol: string;
+  setups: number;
+  per_week: number;
+  n: number;
+  win_rate: number;
+  expectancy_r: number;
+  total_r: number;
+}
+
+/** 机械前瞻期望,不是策略成绩(result.note 会说明);UI 别写「已验证」 */
+export interface ExperimentResult {
+  manifest_hash: string;
+  cells: ExperimentCell[];
+  by_strategy: { strategy_id: string; version: number; symbols: string[]; setups: number; n: number; win_rate: number; expectancy_r: number; total_r: number }[];
+  errors: unknown[];
+  note: string;
+  /** 49a0994:funnel 量不出的策略族(资金费率极值 / 区间均值回归),不给数字 */
+  unmeasured?: { strategy_id: string; version: number; reason: string }[];
+}
+
+/** GET /api/lab/experiments?limit= (experiments[].input = ExperimentManifest, .result = ExperimentResult) */
+export interface LabExperimentsResponse {
+  experiments: BotRun[];
+  decision: { run: boolean; reason: string; last_at: number | null; new_closed: number };
+  running: boolean;
+}
+
+export interface DailyBrief {
+  from: number;
+  to: number;
+  runs_by_role: Partial<Record<BotRole, { runs: number; done: number; failed: number; skipped: number; cost_cny: number }>>;
+  total_cost_cny: number;
+  pending_handoffs: { count: number; by_from: Partial<Record<BotRole, number>> };
+  risk: { level: RiskLevel; open: number; blocks_new_risk: boolean; titles: string[] };
+  portfolio: { quality: PortfolioQuality; equity: number; gross_ratio: number | null; clusters: number } | null;
+  trades: { closed: number; wins: number; losses: number; total_r: number; unprotected: number };
+  headline: string;
+}
+
+/** GET /api/captain/brief;POST 立即出一份 */
+export interface CaptainBriefResponse {
+  brief: DailyBrief | null;
+  due: boolean;
+  briefs: BotRun[];
 }

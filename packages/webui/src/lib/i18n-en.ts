@@ -6,6 +6,8 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '本次发布不包含': 'not in this release',
+  'Layer 2 · 本次发布不包含': 'Layer 2 · not in this release',
   '值班': 'Duty',
   '交易': 'Trading',
   '团队': 'Team',
