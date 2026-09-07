@@ -140,6 +140,8 @@ export function ExecutionPanel() {
     setModel(serverModel ?? '');
   }, [serverModel]);
 
+  const workflowQ = useQuery({ queryKey: ['workflow'], queryFn: api.workflow });
+  const loginCli: 'claude' | 'codex' = (view?.agent?.cli ?? workflowQ.data?.exec_agent_cli ?? 'claude') as 'claude' | 'codex';
   const save = useMutation({
     mutationFn: (p: Partial<Workflow>) => api.patchWorkflow(p),
     onSuccess: (res) => {
@@ -233,8 +235,12 @@ export function ExecutionPanel() {
           </div>
           <div className="text-muted-foreground">{t('点「用 Claude 登录币安」会弹一个终端跑 claude "/mcp":选 binance-mcp-server → Authenticate → 浏览器里同意。回来后切到该通道并检查连接;网关不保存任何 token。')}</div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10.5px] text-muted-foreground">{t('登录用')}</span>
+            {(['claude', 'codex'] as const).map((c) => (
+              <Button key={c} size="xs" variant={loginCli === c ? 'default' : 'outline'} disabled={save.isPending} onClick={() => loginCli !== c && save.mutate({ exec_agent_cli: c })}>{c}</Button>
+            ))}
             <Button size="xs" disabled={connect.isPending} onClick={() => connect.mutate()}>
-              {connect.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{t('用 Claude 登录币安')}
+              {connect.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{loginCli === 'codex' ? t('用 Codex 登录币安') : t('用 Claude 登录币安')}
             </Button>
             {backend !== 'agent_mcp' ? (
               <Button size="xs" variant="outline" disabled={!canSwitch || save.isPending} onClick={() => pickBackend('agent_mcp')}>{t('切到币安官方 MCP')}</Button>

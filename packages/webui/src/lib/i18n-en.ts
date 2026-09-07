@@ -6,6 +6,8 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '登录用': 'Log in with',
+  '用 Codex 登录币安': 'Log in to Binance with Codex',
   '备选': 'Alternative',
   '接入币安 →': 'Connect Binance →',
   '币安官方 MCP 还没登录': 'Binance MCP is not logged in yet',
