@@ -156,20 +156,44 @@ function FieldError({ msg }: { msg?: string }) {
   return <div className="px-3 pb-1.5 text-[11px] text-destructive animate-in fade-in duration-200">{msg}</div>;
 }
 
+/**
+ * 一行字段的两栏栅格:窄容器(Agent 页抽屉)堆成上下两行,宽容器(盯盘参数页整版)
+ * 名字一栏、控件一栏。控件不再被 justify-between 甩到面板最右边——那在 1500px 宽的
+ * 卡片里意味着眼睛要横扫一整行才能把名字和输入框对上。
+ */
+const FIELD_GRID = '@lg:grid @lg:grid-cols-[13rem_minmax(0,1fr)] @lg:items-center @lg:gap-4';
+
 /** 工作流草稿的一行字段——Input/Select/Switch 共用的行布局。 */
 function FieldRow({ label, hint, error, children }: { label: string; hint?: string; error?: string; children: React.ReactNode }) {
   return (
-    <div className={cn(error && 'bg-destructive/5')}>
-      <div className="flex items-center justify-between gap-3 px-3 py-2">
-        <Label className="min-w-0 shrink-0 text-[12px] font-normal text-muted-foreground">
+    <div className={cn('@container', error && 'bg-destructive/5')}>
+      <div className={cn('flex flex-col gap-1.5 px-3 py-2.5', FIELD_GRID)}>
+        <Label className="block min-w-0 text-[12px] font-normal text-foreground/85">
           {label}
-          {hint ? <span className="ml-1 text-[10px] text-muted-foreground/70">{hint}</span> : null}
+          {hint ? <span className="mt-0.5 block text-[10.5px] leading-4 font-normal text-muted-foreground/80">{hint}</span> : null}
         </Label>
-        <div className="flex min-w-0 shrink-0 items-center gap-1.5">{children}</div>
+        <div className="flex min-w-0 items-center gap-1.5">{children}</div>
       </div>
       <FieldError msg={error} />
     </div>
   );
+}
+
+/** 字段下面的解释文字,缩进到控件那一栏,读起来是「这一栏的注脚」而不是横跨整版的散文。 */
+function FieldNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="@container px-3 pb-2.5">
+      <div className={FIELD_GRID}>
+        <span aria-hidden="true" className="hidden @lg:block" />
+        <div className="text-[11px] leading-relaxed text-muted-foreground">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/** 一个字段 + 它的注脚算一组,组与组之间才画分隔线。 */
+function FieldGroup({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>;
 }
 
 /**
@@ -406,7 +430,8 @@ const PRESETS: Preset[] = [
 ];
 
 function Section({ id, sectioned, open, onToggle, children }: { id: WorkflowGroup; sectioned: boolean; open: boolean; onToggle: () => void; children: React.ReactNode }) {
-  if (!sectioned) return <>{children}</>;
+  // 不折叠时也要分隔线:盯盘参数页的「节奏」是一整版平铺的字段,没有线就糊成一片。
+  if (!sectioned) return <div className="divide-y">{children}</div>;
   return (
     <div>
       <button type="button" onClick={onToggle} className="flex w-full items-center gap-1.5 bg-muted/40 px-3 py-1.5 text-left text-[11px] font-semibold tracking-wide text-muted-foreground hover:text-foreground">
@@ -545,13 +570,20 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
           {show('pace') ? (
             <Section id="pace" sectioned={sectioned} open={openGroups.has('pace')} onToggle={() => toggleGroup('pace')}>
 
-          <div className="flex items-center gap-1.5 px-3 py-2">
-            <span className="text-[11px] text-muted-foreground">{t('预设')}</span>
-            {PRESETS.map((p) => (
-              <Button key={p.id} size="xs" variant="outline" className="rounded-full" title={t(p.hint)} onClick={() => applyPreset(p)}>
-                {t(p.label)}
-              </Button>
-            ))}
+          <div className="@container">
+            <div className={cn('flex flex-col gap-1.5 px-3 py-2.5', FIELD_GRID)}>
+              <div className="min-w-0 text-[12px] text-foreground/85">
+                {t('预设')}
+                <span className="mt-0.5 block text-[10.5px] leading-4 text-muted-foreground/80">{t('一键套一组节奏,套完还能逐项改')}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {PRESETS.map((p) => (
+                  <Button key={p.id} size="xs" variant="outline" className="rounded-full" title={t(p.hint)} onClick={() => applyPreset(p)}>
+                    {t(p.label)}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {hideWatchlist ? null : <WatchlistEditor draft={draft} setDraft={setDraft} error={fieldErrors['watchlist']} />}
@@ -571,25 +603,32 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
             </Select>
           </FieldRow>
 
-          <FieldRow label={t('扫描方式')} error={fieldErrors['scan_mode']}>
-            <Select value={draft.scan_mode} onValueChange={(v) => setDraft((w) => ({ ...w, scan_mode: v as Workflow['scan_mode'] }))}>
-              <SelectTrigger size="sm" className="h-7 w-36 text-[12px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="triggered">{t('触发器命中才问模型')}</SelectItem>
-                <SelectItem value="every_close">{t('每根收盘都问(演示用)')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </FieldRow>
-          <div className="px-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">
-            {draft.scan_mode === 'triggered'
-              ? t('每根收盘只在本地算特征。突破、EMA 交叉、放量、急拉急跌、开收盘窗口、资金费率极端、回踩,命中任一个,或者到心跳,才叫模型。')
-              : t('每根收盘对观察列表里每个币各问一次模型,费用随周期线性涨;演示看热闹用。')}
-            <div className="num mt-1 text-foreground/80">
-              {t('预计')} <span className="font-semibold">{callsText}</span> {t('次/小时')} · {costText}{t('/小时(GLM 单价 ≈¥0.006)')}
-            </div>
-          </div>
+          <FieldGroup>
+            <FieldRow label={t('扫描方式')} error={fieldErrors['scan_mode']}>
+              <Select value={draft.scan_mode} onValueChange={(v) => setDraft((w) => ({ ...w, scan_mode: v as Workflow['scan_mode'] }))}>
+                <SelectTrigger size="sm" className="h-7 w-56 max-w-full text-[12px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="triggered">{t('触发器命中才问模型')}</SelectItem>
+                  <SelectItem value="every_close">{t('每根收盘都问(演示用)')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldRow>
+            <FieldNote>
+              {draft.scan_mode === 'triggered'
+                ? t('每根收盘只在本地算特征。突破、EMA 交叉、放量、急拉急跌、开收盘窗口、资金费率极端、回踩,命中任一个,或者到心跳,才叫模型。')
+                : t('每根收盘对观察列表里每个币各问一次模型,费用随周期线性涨;演示看热闹用。')}
+              <div className="mt-1.5 inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[11px] text-foreground/80">
+                <span className="text-muted-foreground">{t('预计')}</span>
+                <span className="num font-semibold">{callsText}</span>
+                <span className="text-muted-foreground">{t('次/小时')}</span>
+                <span className="text-muted-foreground/50">·</span>
+                <span className="num font-semibold">{costText}</span>
+                <span className="text-muted-foreground">{t('/小时(GLM 单价 ≈¥0.006)')}</span>
+              </div>
+            </FieldNote>
+          </FieldGroup>
 
           {draft.scan_mode === 'triggered' ? (
             <>
@@ -611,13 +650,15 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
             <Switch checked={draft.review_every_close} onCheckedChange={(v) => setDraft((w) => ({ ...w, review_every_close: v }))} />
           </FieldRow>
 
-          <FieldRow label={t('失效确认根数')} hint={t('连续几根收盘 K 线越过失效价才算数,1–5')} error={fieldErrors['invalidation_confirm_bars']}>
-            <NumInput min={1} value={draft.invalidation_confirm_bars} onChange={(n) => setDraft((w) => ({ ...w, invalidation_confirm_bars: Math.min(5, Math.max(1, Math.round(n))) }))} className="w-16" />
-          </FieldRow>
-          <FieldRow label={t('失效确认深度')} hint={t('越过不到这么多 ATR 就不算,0–1')} error={fieldErrors['invalidation_buffer_atr']}>
-            <NumInput min={0} step={0.05} value={draft.invalidation_buffer_atr} onChange={(n) => setDraft((w) => ({ ...w, invalidation_buffer_atr: Math.min(1, Math.max(0, n)) }))} className="w-16" />
-          </FieldRow>
-          <div className="px-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">{t('失效价被越过不等于必须离场,只有止损是硬线。根数和深度都满足了,才写成「失效确认=是」进持仓复查的证据。这两项模型改不了。')}</div>
+          <FieldGroup>
+            <FieldRow label={t('失效确认根数')} hint={t('连续几根收盘 K 线越过失效价才算数,1–5')} error={fieldErrors['invalidation_confirm_bars']}>
+              <NumInput min={1} value={draft.invalidation_confirm_bars} onChange={(n) => setDraft((w) => ({ ...w, invalidation_confirm_bars: Math.min(5, Math.max(1, Math.round(n))) }))} className="w-16" />
+            </FieldRow>
+            <FieldRow label={t('失效确认深度')} hint={t('越过不到这么多 ATR 就不算,0–1')} error={fieldErrors['invalidation_buffer_atr']}>
+              <NumInput min={0} step={0.05} value={draft.invalidation_buffer_atr} onChange={(n) => setDraft((w) => ({ ...w, invalidation_buffer_atr: Math.min(1, Math.max(0, n)) }))} className="w-16" />
+            </FieldRow>
+            <FieldNote>{t('失效价被越过不等于必须离场,只有止损是硬线。根数和深度都满足了,才写成「失效确认=是」进持仓复查的证据。这两项模型改不了。')}</FieldNote>
+          </FieldGroup>
 
           <FieldRow label={t('信息员频率')} hint={t('分钟')} error={fieldErrors['info_every_ms']}>
             <NumInput min={2} value={infoMinutes} onChange={(m) => setDraft((w) => ({ ...w, info_every_ms: Math.round(Math.max(1, m) * 60000) }))} />
@@ -675,10 +716,12 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
             <NumInput min={1} value={draft.max_opens_per_day} onChange={(n) => setDraft((w) => ({ ...w, max_opens_per_day: n }))} className="w-16" />
           </FieldRow>
 
-          <FieldRow label={t('每日判断上限')} hint={t('次/天,0–5000,0 = 不限')} error={fieldErrors['daily_judgment_cap']}>
-            <NumInput min={0} value={draft.daily_judgment_cap ?? 0} onChange={(n) => setDraft((w) => ({ ...w, daily_judgment_cap: Math.max(0, Math.min(5000, Math.round(n))) }))} />
-          </FieldRow>
-          <div className="px-3 pb-2 text-[11px] leading-relaxed text-muted-foreground">{t('到上限之后,当天不再调模型(聊天不受限)。')}</div>
+          <FieldGroup>
+            <FieldRow label={t('每日判断上限')} hint={t('次/天,0–5000,0 = 不限')} error={fieldErrors['daily_judgment_cap']}>
+              <NumInput min={0} value={draft.daily_judgment_cap ?? 0} onChange={(n) => setDraft((w) => ({ ...w, daily_judgment_cap: Math.max(0, Math.min(5000, Math.round(n))) }))} />
+            </FieldRow>
+            <FieldNote>{t('到上限之后,当天不再调模型(聊天不受限)。')}</FieldNote>
+          </FieldGroup>
 
           
             </Section>
@@ -758,13 +801,13 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
         </div>
       </ScrollArea>
       <Separator />
-      <div className="shrink-0 space-y-1.5 p-2.5">
+      <div className="@container shrink-0 space-y-1.5 p-2.5">
         {generalErrors.length > 0 ? (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1.5 text-[11px] text-destructive">{generalErrors.join('; ')}</div>
         ) : null}
         <div className="flex items-center gap-1.5">
           <Button
-            className="flex-1"
+            className="flex-1 @lg:flex-none @lg:min-w-44"
             size="sm"
             disabled={save.isPending || !dirty}
             onClick={() => {
@@ -778,9 +821,14 @@ export function WorkflowForm({ groups, sectioned = false, defaultOpen = ['pace']
               {t('撤销')}
             </Button>
           ) : null}
+          {dirty ? (
+            <div className="num hidden min-w-0 truncate text-[10.5px] text-muted-foreground @lg:block">
+              {t('改了')}:{Object.keys(patch).map((k) => FIELD_LABEL[k] ?? k).join('、')}
+            </div>
+          ) : null}
         </div>
         {dirty ? (
-          <div className="num truncate text-[10.5px] text-muted-foreground">
+          <div className="num truncate text-[10.5px] text-muted-foreground @lg:hidden">
             {t('改了')}:{Object.keys(patch).map((k) => FIELD_LABEL[k] ?? k).join('、')}
           </div>
         ) : null}

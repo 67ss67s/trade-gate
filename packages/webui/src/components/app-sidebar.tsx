@@ -39,8 +39,8 @@ export function AppSidebar({ page, onNavigate }: AppSidebarProps) {
           <div className="flex size-6.5 shrink-0 items-center justify-center rounded bg-primary font-mono text-[11px] font-bold text-primary-foreground">
             TS
           </div>
-          <div className="min-w-0 leading-none group-data-[collapsible=icon]:hidden">
-            <div className="truncate text-[13px] font-semibold">Trading Swarm</div>
+          <div className="min-w-0 flex-1 leading-none group-data-[collapsible=icon]:hidden">
+            <div className="truncate text-[12.5px] font-semibold tracking-tight">Trading Swarm</div>
           </div>
         </div>
       </SidebarHeader>

@@ -1243,7 +1243,8 @@ export const EN: Record<string, string> = {
 
   // ---- 盯盘参数页(另一 session 新写的名单板,词条先补上) ----
   '节奏': 'Pace',
-  '周期 / 扫描方式 / 心跳 / 急拉阈值 / 收盘复查 / 信息员频率;改完点保存': 'Timeframe / scan mode / heartbeat / fast-move threshold / close review / intel interval — save when done',
+  '模型多久看一次盘、什么时候才值得叫模型;改完点下面的保存': 'How often the model looks at the market, and what makes a bar worth asking it — save at the bottom when done',
+  '一键套一组节奏,套完还能逐项改': 'One click sets a whole pace; every field stays editable afterwards',
   '改完点保存,下一轮生效': 'save and it takes effect next cycle',
   'agent 能看、能交易的币就是这一份。风险、额度、自动化、大脑在「设置 › 工作流」;新币候选在「筛选」': 'This is every symbol the agent can see and trade. Risk, limits, automation and brains live under Settings › Workflow; new candidates under Screener',
   '每多一个币 = 多一份心跳/收盘判断的模型费': 'each extra symbol adds one more heartbeat / close judgment worth of model cost',

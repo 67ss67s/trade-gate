@@ -40,6 +40,9 @@ function off(action: string | null): BotPresence {
 
 /** 前端兜底口径。只在 profile.presence 缺失时调用。 */
 export function derivePresence(profile: BotProfile, inp: PresenceInputs): BotPresence {
+  // 名册里没接线的角色一律 off:本次发布不包含 Layer 2,楼层不能把它们画成在场的
+  // (HELM / SENTINEL 以前有自己的 case,绕过了这一判断,于是灰桌子上坐着亮头像)。
+  if (!profile.enabled) return off(profile.note);
   const ov = inp.overview;
   const loop = ov?.loop;
   const queue = ov?.queue;
@@ -90,10 +93,10 @@ export function derivePresence(profile: BotProfile, inp: PresenceInputs): BotPre
     }
     case 'strategy_lab': {
       if (inp.backtests?.running) return { state: 'working', action: t('回测跑批中'), since: null, next_at: null };
-      return profile.enabled ? idle(null) : off(profile.note);
+      return idle(null);
     }
     default:
-      return profile.enabled ? idle(null) : off(profile.note);
+      return idle(null);
   }
 }
 

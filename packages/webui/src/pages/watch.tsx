@@ -466,7 +466,7 @@ export function WatchPage() {
         </Pane>
       </Workspace>
       <Workspace className="max-h-[45vh] overflow-y-auto">
-        <Pane title={t('节奏')} hint={t('周期 / 扫描方式 / 心跳 / 急拉阈值 / 收盘复查 / 信息员频率;改完点保存')}>
+        <Pane title={t('节奏')} hint={t('模型多久看一次盘、什么时候才值得叫模型;改完点下面的保存')}>
           <div className="mx-auto w-full max-w-5xl">
             <WorkflowForm groups={['pace']} hideWatchlist />
           </div>
