@@ -37,10 +37,10 @@ export function AppSidebar({ page, onNavigate }: AppSidebarProps) {
       <SidebarHeader className="py-1.5">
         <div className="flex items-center gap-2 px-1 py-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <div className="flex size-6.5 shrink-0 items-center justify-center rounded bg-primary font-mono text-[11px] font-bold text-primary-foreground">
-            TG
+            TS
           </div>
           <div className="min-w-0 leading-none group-data-[collapsible=icon]:hidden">
-            <div className="truncate text-[13px] font-semibold">Trade Gate</div>
+            <div className="truncate text-[13px] font-semibold">Trading Swarm</div>
           </div>
         </div>
       </SidebarHeader>

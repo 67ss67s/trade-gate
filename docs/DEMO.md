@@ -6,7 +6,7 @@ at 1440×900, UI language EN (top bar).
 
 | Time | Screen | What you show | What you say |
 |---|---|---|---|
-| 0:00 | Home | Five station cards with live facts, the pipeline arrows | "TradeGate: the model does the judgment, code does the money. Five stations, every judgment a replayable episode." |
+| 0:00 | Home | Five station cards with live facts, the pipeline arrows | "Trading Swarm: the model does the judgment, code does the money. Five stations, every judgment a replayable episode." |
 | 0:20 | Intel | Market state: regime, bias, key points citing `I3`, `I7`; click *Run now* | "The information officer turns tickers, funding, OI and news into a cited market state every 30 minutes." |
 | 0:40 | Screener | Run the short horizon; fit scores per symbol × strategy; the watch-list proposal; apply it | "Radar scores candidates deterministically and only ever proposes watch-list changes — a human applies them." |
 | 1:00 | Judgments | Open the newest episode: evidence `E1..En`, the exact prompt, the raw model answer, every gate with its reason | "The model sees a numbered evidence registry and answers NO_TRADE, WATCH or PROPOSE with citations. Nothing else. Most of the time the right answer is WATCH." |

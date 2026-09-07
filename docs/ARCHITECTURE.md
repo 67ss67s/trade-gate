@@ -1,6 +1,6 @@
 # Architecture
 
-TradeGate is one Node process (the **gateway**), one static web UI, and an optional Rust executor. The
+Trading Swarm is one Node process (the **gateway**), one static web UI, and an optional Rust executor. The
 gateway owns the loop, the sqlite state and the HTTP/SSE API; the UI is a pure client of that API; every
 exchange credential lives outside the TypeScript process.
 

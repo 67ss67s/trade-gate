@@ -1,6 +1,6 @@
-# TradeGate on Binance Agent OS
+# Trading Swarm on Binance Agent OS
 
-Agent OS = Binance APIs + Skills Hub + MCP Server (+ Agentic Wallet / x402). TradeGate uses it in three
+Agent OS = Binance APIs + Skills Hub + MCP Server (+ Agentic Wallet / x402). Trading Swarm uses it in three
 directions: as a **consumer** of the `binance` skill (`binance-cli`), as a **client** of the Binance MCP
 Server through an allow-listed host, and as a **producer** of a skill other agents can install.
 
@@ -30,7 +30,7 @@ and the receipt is recorded. Until it passes, new entries are blocked on that ba
 `TG_DEMO_BACKEND=agent_mcp` — `packages/gateway/src/demo/execution-agent.ts`.
 
 The Binance MCP Server (`https://agent.binance.com/mcp/agentic`) admits allow-listed OAuth clients; Claude
-Code is one of them. So TradeGate does not connect to the MCP server itself — it starts a short host
+Code is one of them. So Trading Swarm does not connect to the MCP server itself — it starts a short host
 session per operation and tells it exactly which tool to call and what to return:
 
 ```
@@ -46,7 +46,7 @@ mechanism drives Codex (`TG_EXEC_AGENT_CLI=codex`).
 Reads that are cheap and public (mark price, klines, funding, exchange rules) go to the public REST API
 directly; only account and order queries cost a host session, and those are cached per tick.
 
-## 3. TradeGate as a skill
+## 3. Trading Swarm as a skill
 
 [`skills/trade-gate/SKILL.md`](../skills/trade-gate/SKILL.md) is a Skills Hub-style skill any host agent can
 load. It teaches the host the gateway's HTTP API and the rules: money-moving calls only propose, sizing and

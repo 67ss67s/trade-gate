@@ -1403,7 +1403,7 @@ export const EN: Record<string, string> = {
 
   // ---- 楼层(#floor)----
   // 顶栏 / 底栏
-  'Trade Gate 值班楼层': 'Trade Gate ops floor',
+  'Trading Swarm 值班楼层': 'Trading Swarm ops floor',
   '谁在干活、谁在等你、钱只能从哪儿出去': 'Who is working, who is waiting on you, and the only door money leaves by',
   '调度': 'Loop',
   '每 {n} 分钟 · {brain}': 'every {n} min · {brain}',

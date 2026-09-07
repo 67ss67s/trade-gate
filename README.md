@@ -1,8 +1,8 @@
-# TradeGate
+# Trading Swarm
 
 **An agent-first trading gateway on Binance Agent OS. The model does the judgment; code does the money.**
 
-[![ci](https://github.com/67ss67s/trade-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/67ss67s/trade-gate/actions/workflows/ci.yml)
+[![ci](https://github.com/67ss67s/trading-swarm/actions/workflows/ci.yml/badge.svg)](https://github.com/67ss67s/trading-swarm/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node >= 24](https://img.shields.io/badge/node-%E2%89%A5%2024-5a5a5a.svg)](https://nodejs.org)
 
@@ -31,7 +31,7 @@ resulting thread transition — and the UI's judgment page *is* the replay.
 
 ## Open build vs. private build
 
-This repository is the **open build** of TradeGate. There is also a **private build** we run ourselves.
+This repository is the **open build** of Trading Swarm. There is also a **private build** we run ourselves.
 The two share the same pipeline — roughly 90% of the flow is identical: the same five stations, the same
 episode format, the same gates, the same execution chain and the same Agent OS channels. What the private
 build adds is the second layer described below: the Reviewer that grades every trade, the Memory that
@@ -49,7 +49,7 @@ the part we think every trading agent should start from. The rest will land here
 
 Language models are unusually good at the part of trading that is judgment — reading a situation, weighing
 contradictory evidence, saying "not this one" — and unusually bad at the part that is money: arithmetic under
-pressure, position sizing, remembering that a stop must exist before the position does. TradeGate splits the
+pressure, position sizing, remembering that a stop must exist before the position does. Trading Swarm splits the
 two and never lets them mix. The model is handed a registered evidence list for one symbol and returns one
 JSON object: a stance, a direction, an entry style, a stop, take-profits and the evidence ids it cites.
 Everything downstream is deterministic code you can read: the code gates, the quantity, the leverage, the
@@ -59,7 +59,7 @@ scans end there — which is the point.
 ## Quick start
 
 ```bash
-git clone https://github.com/67ss67s/trade-gate && cd trade-gate
+git clone https://github.com/67ss67s/trading-swarm && cd trading-swarm
 npm install
 ./start-demo.sh            # prints the UI URL — http://127.0.0.1:5180 by default (TG_UI_PORT / TG_DEMO_PORT to change)
 ```
@@ -75,7 +75,7 @@ nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` execu
    PATH) for a real model brain; Rust only if you want the `demo` executor.
 2. **Clone and install**
    ```bash
-   git clone https://github.com/67ss67s/trade-gate && cd trade-gate && npm install
+   git clone https://github.com/67ss67s/trading-swarm && cd trading-swarm && npm install
    ```
 3. **First run, no keys** — `./start-demo.sh` and open the UI URL it prints (http://127.0.0.1:5180 unless you set `TG_UI_PORT`; the API is on `TG_DEMO_PORT`, default 18800). Public Binance market data,
    an in-process paper account, and the thesis formed by Claude Code if installed, otherwise by a
@@ -126,7 +126,7 @@ profile store, Claude Code keeps the MCP OAuth session, the model CLIs keep thei
   ./node_modules/.bin/binance-cli profile create    # name: tgate-demo · env: demo · key from https://demo.binance.com
   TG_DEMO_BACKEND=cli ./start-demo.sh
   ```
-- **Binance MCP Server (recommended).** The MCP server admits allow-listed hosts (Claude Code among them), so TradeGate
+- **Binance MCP Server (recommended).** The MCP server admits allow-listed hosts (Claude Code among them), so Trading Swarm
   drives it *through* Claude Code: each write operation is one short host session told exactly which tool to
   call. Log in once — `claude "/mcp"` → `binance-mcp-server` → Authenticate — then
   `TG_DEMO_BACKEND=agent_mcp ./start-demo.sh`.

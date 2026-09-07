@@ -137,7 +137,7 @@ export function FloorPage({ connected = true }: { connected?: boolean }) {
         <div className="flex items-center gap-3 px-4 py-2">
           <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--of-line)] bg-[var(--of-panel-2)] text-[var(--of-accent)]">◍</span>
           <div>
-            <div className="of-title whitespace-nowrap text-xl leading-6">{t('Trade Gate 值班楼层')}</div>
+            <div className="of-title whitespace-nowrap text-xl leading-6">{t('Trading Swarm 值班楼层')}</div>
             <div className="hidden text-[10px] text-[var(--of-ink-dim)] xl:block">{t('谁在干活、谁在等你、钱只能从哪儿出去')}</div>
           </div>
         </div>
