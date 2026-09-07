@@ -53,6 +53,42 @@ the thesis formed by Claude Code if the `claude` CLI is on your PATH, otherwise 
 State (sqlite, settings, episodes) lives in `~/.trade-gate`, never in the repository; a fresh clone inherits
 nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` executor.
 
+## Replicate this agent, step by step
+
+1. **Prerequisites** — Node ≥ 24 and npm. Optional: [Claude Code](https://claude.com/claude-code) (`claude` on
+   PATH) for a real model brain; Rust only if you want the `demo` executor.
+2. **Clone and install**
+   ```bash
+   git clone https://github.com/67ss67s/trade-gate && cd trade-gate && npm install
+   ```
+3. **First run, no keys** — `./start-demo.sh`, then open http://127.0.0.1:5180. Public Binance market data,
+   an in-process paper account, and the thesis formed by Claude Code if installed, otherwise by a
+   deterministic stub. Nothing is written into the repository; state lives in `~/.trade-gate`.
+4. **Watch a cycle** — the home page shows the five stations. *Intel* runs the information officer,
+   *Screener* scores candidates, *Judgments* shows every model decision with its evidence `E1..En`, the
+   exact prompt, the raw answer and every risk gate's reason. Most decisions are `WATCH` / `NO_TRADE`.
+5. **Tune the loop** — Agent page → workflow panel: watch list, timeframe, risk % per trade, leverage,
+   max threads, daily-loss stop, auto-approve. Everything is bounded and persisted.
+6. **Talk to it** — the chat desk exposes the same tools; anything that moves money becomes a pending
+   intent you approve with a one-time token.
+7. **Switch the brain** — top bar picker or `TG_DEMO_BRAIN=claude|codex|pi|stub`. Model CLIs hold their
+   own auth; the gateway never sees a provider key.
+8. **Go to Binance Demo Trading through Agent OS** — create a key at https://demo.binance.com, then
+   ```bash
+   ./node_modules/.bin/binance-cli profile create    # name tgate-demo · env demo
+   TG_DEMO_BACKEND=cli ./start-demo.sh
+   ```
+   or use the Binance MCP Server through Claude Code: `claude "/mcp"` → authenticate `binance-mcp-server`,
+   then `TG_DEMO_BACKEND=agent_mcp ./start-demo.sh`. Run the stop-leg canary from the execution panel
+   before the first entry.
+9. **Replay and iterate** — *Replay* walks history bar by bar with the agent seeing only what was visible;
+   *Strategy library* versions every rule change; `npm test` runs ~680 offline tests.
+10. **Emergency stop** — type `HALT` in the top bar; everything flattens and new entries are refused until
+    you resume.
+
+Full configuration in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md), the Agent OS wiring in
+[`docs/AGENT-OS.md`](docs/AGENT-OS.md), a three-minute walkthrough in [`docs/DEMO.md`](docs/DEMO.md).
+
 Then pick your pieces — everything below is switchable live from the UI's workflow panel or with env
 variables at start-up (full list in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md)):
 
