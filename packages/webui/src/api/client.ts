@@ -223,6 +223,7 @@ export const api = {
   alertAction: (a: RiskAlertAction) => send<unknown>(a.method, a.path, a.method === 'GET' ? undefined : (a.body ?? {})),
   executionCheck: () => post<ExecutionView>('/api/execution/check'),
   executionConnect: () => post<ExecutionConnectResponse>('/api/execution/connect'),
+  executionSetupCli: () => post<{ started: boolean; command: string; instructions: string; url: string; detail?: string }>('/api/execution/setup-cli'),
 
   // ---- v3.4:币安 MCP 直连的工具映射(§9.8)—— 推断 → 编辑 → 只读测试 → 确认 ------------
   binanceMap: () => request<BinanceMapResponse>('/api/binance/map'),

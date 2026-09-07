@@ -11,6 +11,9 @@ import { brainCatalog, testBrain } from './brain.js';
 import { claudeLoginCommand, CODEX_MCP_BLOCKED_DETAIL, claudeLoginInstructions, codexLoginInstructions, DEFAULT_MCP_NAME, DEFAULT_MCP_URL, openTerminalWith, type TerminalOpener } from './execution-agent.js';
 import { extraRouteModules } from './routes.js';
 import { BRAINS, MODEL_ID_RE } from './workflow.js';
+import { defaultBinanceCliBin } from './execution-cli.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { JUDGMENT_GRAPH, toMermaid } from './graph.js';
 
 type Handler = (req: http.IncomingMessage, res: http.ServerResponse, url: URL, params: Record<string, string>) => Promise<void>;
@@ -201,6 +204,18 @@ export function createServer(rt: DemoRuntime, store: DemoStore, options: ServerO
     const opened = openTerminal(loginCommand);
     if (opened.ok) return json(res, 200, { started: true, instructions: '已弹出终端:在里面选 binance-mcp-server → Authenticate,浏览器里同意后回来点「检查连接」', detail: loginCommand });
     json(res, 200, { started: false, instructions: claudeLoginInstructions(DEFAULT_MCP_NAME, rt.cliCommandFor('claude')), detail: opened.error });
+  }));
+
+  // ---- binance-cli profile setup (the recommended channel): pop a Terminal running the official CLI's
+  // interactive `profile create`. The key is pasted there and stays in binance-cli's own profile store.
+  route('POST', '/api/execution/setup-cli', guarded(async (_req, res) => {
+    const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+    const profile = process.env['TG_DEMO_CLI_PROFILE'] ?? 'tgate-demo';
+    const command = `${defaultBinanceCliBin(repoRoot)} profile create --name ${profile}`;
+    const instructions = `1. 到 https://demo.binance.com 开 Demo Trading,生成一对 API key。\n2. 终端里跑:${command}(环境选 demo,粘 key/secret)。\n3. 回来点「检查连接」。`;
+    const opened = openTerminal(command);
+    if (opened.ok) return json(res, 200, { started: true, command, instructions: `已弹出终端:按提示粘 Demo Trading 的 key/secret,环境选 demo;弄完回来点「检查连接」`, url: 'https://demo.binance.com' });
+    json(res, 200, { started: false, command, instructions, url: 'https://demo.binance.com', detail: opened.error });
   }));
 
   // ---- information officer

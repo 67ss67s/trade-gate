@@ -6,6 +6,10 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '没能打开终端': 'Could not open a terminal',
+  '1. 去 demo.binance.com 建 key': '1. Create a key at demo.binance.com',
+  '2. 在终端里登录 binance-cli': '2. Log in to binance-cli in a terminal',
+  '3. 检查连接': '3. Check connection',
   '本次发布不包含': 'not in this release',
   'Layer 2 · 本次发布不包含': 'Layer 2 · not in this release',
   '值班': 'Duty',

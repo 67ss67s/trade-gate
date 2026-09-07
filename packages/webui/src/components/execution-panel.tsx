@@ -158,6 +158,14 @@ export function ExecutionPanel() {
     onError: (err) => toast.error(t('检查失败'), { description: err instanceof Error ? err.message : String(err) }),
   });
 
+  const setupCli = useMutation({
+    mutationFn: api.executionSetupCli,
+    onSuccess: (res) => {
+      if (res?.started) toast.info(t('终端弹出来了'), { description: res.instructions });
+      else setInstructions(`${res?.instructions ?? ''}${res?.detail ? `\n(${res.detail})` : ''}`);
+    },
+    onError: (err) => toast.error(t('没能打开终端'), { description: err instanceof Error ? err.message : String(err) }),
+  });
   const connect = useMutation({
     mutationFn: api.executionConnect,
     onSuccess: (res) => {
@@ -218,6 +226,13 @@ export function ExecutionPanel() {
             {t('{name} 还没接好', { name: o.label })}
           </div>
           <pre className="num whitespace-pre-wrap font-sans text-[11px] text-muted-foreground">{o.setup}</pre>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <Button size="xs" asChild><a href="https://demo.binance.com" target="_blank" rel="noreferrer">{t('1. 去 demo.binance.com 建 key')}</a></Button>
+            <Button size="xs" variant="outline" disabled={setupCli.isPending} onClick={() => setupCli.mutate()}>
+              {setupCli.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{t('2. 在终端里登录 binance-cli')}
+            </Button>
+            <Button size="xs" variant="ghost" disabled={check.isPending} onClick={() => check.mutate()}>{t('3. 检查连接')}</Button>
+          </div>
         </div>
       ))}
       <div className="flex flex-wrap items-center gap-1.5 px-3 py-2">
