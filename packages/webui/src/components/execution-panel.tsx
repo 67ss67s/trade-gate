@@ -224,28 +224,11 @@ export function ExecutionPanel() {
 
   return (
     <div id="execution-section" className="flex flex-col">
-      {/* 09-07:推荐通道(官方 binance-cli)没接好时,接入步骤顶到最上面——用户先看到这个,再看别的 */}
-      {options.filter((o) => o.recommended && !o.available && o.setup).map((o) => (
-        <div key={`setup-${o.kind}`} className="mx-3 mt-2 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-2 text-[11.5px] leading-relaxed">
-          <div className="mb-1 flex items-center gap-1.5 font-medium">
-            <Badge variant="outline" className="h-4 border-primary/50 px-1 text-[9.5px] text-primary">{t('推荐')}</Badge>
-            {t('{name} 还没接好', { name: o.label })}
-          </div>
-          <pre className="num whitespace-pre-wrap font-sans text-[11px] text-muted-foreground">{o.setup}</pre>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <Button size="xs" asChild><a href="https://demo.binance.com" target="_blank" rel="noreferrer">{t('1. 去 demo.binance.com 建 key')}</a></Button>
-            <Button size="xs" variant="outline" disabled={setupCli.isPending} onClick={() => setupCli.mutate()}>
-              {setupCli.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{t('2. 在终端里登录 binance-cli')}
-            </Button>
-            <Button size="xs" variant="ghost" disabled={check.isPending} onClick={() => check.mutate()}>{t('3. 检查连接')}</Button>
-          </div>
-        </div>
-      ))}
       {/* Binance MCP through Claude Code: always visible until the agent_mcp channel is selected AND connected. */}
       {backend !== 'agent_mcp' || conn?.status !== 'connected' ? (
-        <div className="mx-3 mt-2 rounded-md border border-warn/40 bg-warn/10 px-2.5 py-2 text-[11.5px] leading-relaxed">
+        <div className="mx-3 mt-2 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-2 text-[11.5px] leading-relaxed">
           <div className="mb-1 flex items-center gap-1.5 font-medium">
-            <Badge variant="outline" className="h-4 border-warn/50 px-1 text-[9.5px] text-warn">Binance MCP</Badge>
+            <Badge variant="outline" className="h-4 border-primary/50 px-1 text-[9.5px] text-primary">{t('推荐')}</Badge>
             {backend === 'agent_mcp' ? t('币安官方 MCP 还没登录') : t('币安官方 MCP(经 Claude Code)')}
           </div>
           <div className="text-muted-foreground">{t('点「用 Claude 登录币安」会弹一个终端跑 claude "/mcp":选 binance-mcp-server → Authenticate → 浏览器里同意。回来后切到该通道并检查连接;网关不保存任何 token。')}</div>
@@ -261,6 +244,23 @@ export function ExecutionPanel() {
           </div>
         </div>
       ) : null}
+      {/* 09-07:推荐通道(官方 binance-cli)没接好时,接入步骤顶到最上面——用户先看到这个,再看别的 */}
+      {options.filter((o) => o.kind === 'cli' && !o.available && o.setup).map((o) => (
+        <div key={`setup-${o.kind}`} className="mx-3 mt-2 rounded-md border border-border bg-muted/30 px-2.5 py-2 text-[11.5px] leading-relaxed">
+          <div className="mb-1 flex items-center gap-1.5 font-medium">
+            <Badge variant="outline" className="h-4 px-1 text-[9.5px] text-muted-foreground">{t('备选')}</Badge>
+            {t('{name} 还没接好', { name: o.label })}
+          </div>
+          <pre className="num whitespace-pre-wrap font-sans text-[11px] text-muted-foreground">{o.setup}</pre>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <Button size="xs" asChild><a href="https://demo.binance.com" target="_blank" rel="noreferrer">{t('1. 去 demo.binance.com 建 key')}</a></Button>
+            <Button size="xs" variant="outline" disabled={setupCli.isPending} onClick={() => setupCli.mutate()}>
+              {setupCli.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{t('2. 在终端里登录 binance-cli')}
+            </Button>
+            <Button size="xs" variant="ghost" disabled={check.isPending} onClick={() => check.mutate()}>{t('3. 检查连接')}</Button>
+          </div>
+        </div>
+      ))}
       <div className="flex flex-wrap items-center gap-1.5 px-3 py-2">
         {options.length === 0 ? (
           <span className="num text-[12px]">{backendLabel(backend)}</span>

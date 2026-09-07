@@ -86,7 +86,7 @@ async function main(): Promise<void> {
   };
   const backend: ExecBackend = (backends[backendKind as Backend] ?? backends.paper!)();
   const backendGates = {
-    // The official binance-cli is the recommended channel; when it is missing (or has no profile) the
+    // The official binance-cli is an alternative channel; when it is missing (or has no profile) the
     // availability probe carries the setup steps, which executionView() passes to the UI.
     cli: () => cliAvailability(defaultBinanceCliBin(REPO_ROOT), process.env['TG_DEMO_CLI_PROFILE'] ?? 'tgate-demo'),
   };

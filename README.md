@@ -103,14 +103,14 @@ profile store, Claude Code keeps the MCP OAuth session, the model CLIs keep thei
 
 ### Binance Agent OS channels
 
-- **Skills Hub → `binance` skill → `binance-cli`.** `TG_DEMO_BACKEND=cli` routes every account read and every
+- **Skills Hub → `binance` skill → `binance-cli`** (alternative channel). `TG_DEMO_BACKEND=cli` routes every account read and every
   order through the official CLI with `BINANCE_API_ENV=demo` and a named profile. Conditional stop /
   take-profit legs use the algo-order endpoints.
   ```bash
   ./node_modules/.bin/binance-cli profile create    # name: tgate-demo · env: demo · key from https://demo.binance.com
   TG_DEMO_BACKEND=cli ./start-demo.sh
   ```
-- **Binance MCP Server.** The MCP server admits allow-listed hosts (Claude Code among them), so TradeGate
+- **Binance MCP Server (recommended).** The MCP server admits allow-listed hosts (Claude Code among them), so TradeGate
   drives it *through* Claude Code: each write operation is one short host session told exactly which tool to
   call. Log in once — `claude "/mcp"` → `binance-mcp-server` → Authenticate — then
   `TG_DEMO_BACKEND=agent_mcp ./start-demo.sh`.

@@ -6,6 +6,7 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '备选': 'Alternative',
   '接入币安 →': 'Connect Binance →',
   '币安官方 MCP 还没登录': 'Binance MCP is not logged in yet',
   '币安官方 MCP(经 Claude Code)': 'Binance MCP Server (through Claude Code)',

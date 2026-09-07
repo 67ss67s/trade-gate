@@ -272,8 +272,8 @@ export class DemoRuntime extends EventEmitter {
         gate = { available: false, note: `状态检查失败:${(e as Error).message}` };
       }
       const available = kind === this.backend.kind || (this.backendFactories[kind] !== undefined && (kind !== 'agent_mcp' || cliLaunchStatus(agentCommand).ok) && (gate === null || gate.available));
-      const recommended = kind === 'cli';
-      return { kind, label: BACKEND_LABELS[kind], available, note: !available && gate?.note ? gate.note : BACKEND_NOTES[kind], recommended, setup: recommended && !available ? (gate?.note ?? '还没接好') : null };
+      const recommended = kind === 'agent_mcp';
+      return { kind, label: BACKEND_LABELS[kind], available, note: !available && gate?.note ? gate.note : BACKEND_NOTES[kind], recommended, setup: kind === 'cli' && !available ? (gate?.note ?? '还没接好') : null };
     });
     return {
       backend: this.backend.kind,
