@@ -2,12 +2,12 @@
 //   TG_DEMO_PORT=18800  TG_DEMO_BRAIN=claude|codex|pi|stub (initial workflow.brain; default = claude if the CLI is on PATH, else stub)
 //   TG_DEMO_BACKEND=auto|paper|demo|cli|agent_mcp (auto = demo iff <state dir>/secrets/apikey-demo.json exists)
 //   cli = Agent OS channel: official binance-cli (Skills Hub `binance` skill) with BINANCE_API_ENV=demo and
-//         profile TG_DEMO_CLI_PROFILE (default tgate-demo, created via `binance-cli profile create`)
+//         profile TG_DEMO_CLI_PROFILE (default tswarm-demo, created via `binance-cli profile create`)
 //   agent_mcp = an agent CLI (TG_EXEC_AGENT_CLI=claude|codex, TG_EXEC_AGENT_MODEL) driving Binance's official
 //         MCP server; the CLI owns the OAuth session, the gateway holds nothing. See execution-agent.ts.
 //   TG_DEMO_JUDGMENT_CAP=300 (0 = unlimited) initial daily_judgment_cap
 //   TG_DEMO_AUTO_APPROVE=1  TG_DEMO_RUN_ON_START=1
-//   TG_DEMO_HOME=~/.trade-gate  state directory (sqlite db + secrets); TG_DEMO_DB overrides the db path alone
+//   TG_DEMO_HOME=~/.trading-swarm  state directory (sqlite db + secrets); TG_DEMO_DB overrides the db path alone
 
 import { existsSync } from 'node:fs';
 import os from 'node:os';
@@ -31,10 +31,10 @@ const PAPER_STATE_KEY = 'paper_state';
 
 /**
  * Everything this process persists lives under ONE directory, so a fresh checkout never reads (or
- * writes) somebody else's state. Override with TG_DEMO_HOME; defaults to ~/.trade-gate.
+ * writes) somebody else's state. Override with TG_DEMO_HOME; defaults to ~/.trading-swarm.
  */
 function stateHome(): string {
-  return process.env['TG_DEMO_HOME'] || path.join(os.homedir(), '.trade-gate');
+  return process.env['TG_DEMO_HOME'] || path.join(os.homedir(), '.trading-swarm');
 }
 
 async function main(): Promise<void> {
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
         persist: { load: () => store.kvGet(PAPER_STATE_KEY), save: (json) => store.kvSet(PAPER_STATE_KEY, json) },
       }),
     demo: () => new DemoBackend(defaultDemoExecBin(REPO_ROOT), logFn),
-    cli: () => new CliBackend({ bin: defaultBinanceCliBin(REPO_ROOT), profile: process.env['TG_DEMO_CLI_PROFILE'] ?? 'tgate-demo', env: 'demo', log: logFn }),
+    cli: () => new CliBackend({ bin: defaultBinanceCliBin(REPO_ROOT), profile: process.env['TG_DEMO_CLI_PROFILE'] ?? 'tswarm-demo', env: 'demo', log: logFn }),
     agent_mcp: () =>
       new AgentMcpBackend({
         cli: agentCli(),
@@ -88,7 +88,7 @@ async function main(): Promise<void> {
   const backendGates = {
     // The official binance-cli is an alternative channel; when it is missing (or has no profile) the
     // availability probe carries the setup steps, which executionView() passes to the UI.
-    cli: () => cliAvailability(defaultBinanceCliBin(REPO_ROOT), process.env['TG_DEMO_CLI_PROFILE'] ?? 'tgate-demo'),
+    cli: () => cliAvailability(defaultBinanceCliBin(REPO_ROOT), process.env['TG_DEMO_CLI_PROFILE'] ?? 'tswarm-demo'),
   };
   rt = new DemoRuntime({ store, backend, backends, backendGates, brains: { stub: stubBrain() } });
   // Env overrides for the initial workflow (later edits come from the UI and persist in state.sqlite).

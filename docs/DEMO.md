@@ -1,7 +1,7 @@
 # Demo video plan (3 minutes)
 
 Setup: `TG_DEMO_SHOWCASE=1 ./start-demo.sh` (1-minute timeframe, 3-minute information officer, narration
-on), Claude Code on PATH as the brain, `binance-cli` profile `tgate-demo` created on Demo Trading. Record
+on), Claude Code on PATH as the brain, `binance-cli` profile `tswarm-demo` created on Demo Trading. Record
 at 1440×900, UI language EN (top bar).
 
 | Time | Screen | What you show | What you say |

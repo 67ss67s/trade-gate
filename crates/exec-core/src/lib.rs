@@ -1,4 +1,4 @@
-//! exec-core —— trade-gate 执行核心的 **REST/主账户** 半边(工作包 A1)。
+//! exec-core —— Trading Swarm 执行核心的 **REST/主账户** 半边(工作包 A1)。
 //!
 //! 代码来源:从一套内部生产交易系统的 `exchanges/binance.rs`、
 //! `{account_stream,network,market}.rs` **移植**后剥离原有框架依赖独立演进

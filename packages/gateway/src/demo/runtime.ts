@@ -67,13 +67,13 @@ function localDayStart(now: number): number {
 
 export const BACKEND_LABELS: Record<Backend, string> = {
   paper: '纸面模拟(本地撮合)',
-  demo: 'Binance 模拟盘(tgate-demo-exec)',
+  demo: 'Binance 模拟盘(tswarm-demo-exec)',
   cli: 'Binance 模拟盘(官方 binance-cli)',
   agent_mcp: '币安官方 MCP(agent CLI 驱动)',
 };
 const BACKEND_NOTES: Record<Backend, string> = {
   paper: '不碰交易所,余额与持仓存在本地库里;换后端不会带走纸面持仓。',
-  demo: '走 Rust 子进程 tgate-demo-exec,密钥只在子进程里。',
+  demo: '走 Rust 子进程 tswarm-demo-exec,密钥只在子进程里。',
   cli: '走官方 binance-cli(Skills Hub binance 技能),BINANCE_API_ENV=demo,密钥在 CLI 自己的 profile 里。',
   agent_mcp: '每个写操作 = 一次 agent CLI 运行,由它调币安官方 MCP 工具;网关不持有任何币安密钥或 token。读接口里只有账户与订单查询要花一次 CLI 运行(有缓存),行情走公开 REST。',
 };

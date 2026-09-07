@@ -1,4 +1,4 @@
-//! tgate-demo-exec —— 唯一持有 Binance **Demo Trading**(假钱)API key 的进程
+//! tswarm-demo-exec —— 唯一持有 Binance **Demo Trading**(假钱)API key 的进程
 //! (设计 `design notes` §1/§4)。
 //!
 //! **协议**:stdin/stdout 是 NDJSON,单写者、严格顺序处理(一行处理完才读下一行)。
@@ -6,12 +6,12 @@
 //! `{"id":<int>,"ok":true,"result":<json>}` 或
 //! `{"id":<int>,"ok":false,"error":{"kind":..,"message":..,"code":..?,"ambiguous":bool}}`。
 //! 启动时先同步一次服务器时间,再自发一行 `id:0` 的 hello:
-//! `{"id":0,"ok":true,"result":{"hello":"tgate-demo-exec","base_url":..,"api_key_masked":..,"server_time_offset_ms":..}}`。
+//! `{"id":0,"ok":true,"result":{"hello":"tswarm-demo-exec","base_url":..,"api_key_masked":..,"server_time_offset_ms":..}}`。
 //! 无法解析成 `{id,op}` 形状的行 → 响应 `id:null` 的 local_reject 错误。日志全部走
 //! stderr(tracing);stdout **只**输出协议行。stdin EOF → 退出码 0。
 //!
 //! **凭证**:只认 env `TG_DEMO_API_KEY`/`TG_DEMO_API_SECRET`,或文件
-//! `~/.trade-gate/secrets/apikey-demo.json`(`{"api_key","api_secret"}`,必须 0600,
+//! `~/.trading-swarm/secrets/apikey-demo.json`(`{"api_key","api_secret"}`,必须 0600,
 //! 否则拒读 —— 复用 [`exec_core::secrets::load_from_file`] 的权限检查)。**不接受命令行
 //! 传密钥**。
 //!
@@ -29,13 +29,13 @@ use std::path::PathBuf;
 use serde_json::{Value, json};
 
 use exec_core::binance::rest::{BinanceRest, FAPI_DEMO};
-use exec_core::secrets::{CredentialError, MainCredentials, SecretString, load_from_file, mask, trade_gate_home};
+use exec_core::secrets::{CredentialError, MainCredentials, SecretString, load_from_file, mask, trading_swarm_home};
 
 /// 仅测试用的 base URL 覆盖 env;生产绝不设置。
 const TEST_BASE_URL_ENV: &str = "TG_DEMO_EXEC_TEST_BASE_URL";
 
 fn default_demo_secrets_path() -> PathBuf {
-    trade_gate_home().join("secrets").join("apikey-demo.json")
+    trading_swarm_home().join("secrets").join("apikey-demo.json")
 }
 
 /// env 优先,其次 `apikey-demo.json`。形状与 [`exec_core::secrets::load_main_credentials`]
@@ -161,7 +161,7 @@ async fn main() {
             "id": 0,
             "ok": true,
             "result": {
-                "hello": "tgate-demo-exec",
+                "hello": "tswarm-demo-exec",
                 "base_url": base_url,
                 "api_key_masked": mask(&credentials.api_key),
                 "server_time_offset_ms": offset_ms,

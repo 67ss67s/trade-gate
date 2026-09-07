@@ -112,13 +112,13 @@ episode {
 - Backends implement one interface (`execution.ts`): `paper` (in-process fills at mark price, protective
   legs honoured each tick), `cli` (`execution-cli.ts`, the official `binance-cli`), `agent_mcp`
   (`execution-agent.ts`, a Claude Code / Codex session per write op against Binance's MCP server), `demo`
-  (the Rust `tgate-demo-exec` on `demo-fapi.binance.com`).
+  (the Rust `tswarm-demo-exec` on `demo-fapi.binance.com`).
 - `POST /api/execution/verify-protection` runs a **stop-leg canary** on the live backend before the first
   real entry: place and cancel a tiny conditional order, record the receipt, unblock.
 
 ## Persistence
 
-One sqlite file (`~/.trade-gate/demo/state.sqlite`, override with `TG_DEMO_HOME` / `TG_DEMO_DB`). Migrations
+One sqlite file (`~/.trading-swarm/demo/state.sqlite`, override with `TG_DEMO_HOME` / `TG_DEMO_DB`). Migrations
 in `packages/gateway/src/migrations/` are applied in order on boot. Tables: episodes, threads, intents,
 orders, equity points, information events, market states, workflow (kv), strategies, screens + candidates, chat sessions + messages, logs, activity.
 

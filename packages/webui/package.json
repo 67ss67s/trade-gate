@@ -1,5 +1,5 @@
 {
-  "name": "@trade-gate/webui",
+  "name": "@trading-swarm/webui",
   "version": "0.0.1",
   "private": true,
   "type": "module",

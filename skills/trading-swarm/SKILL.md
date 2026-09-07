@@ -1,15 +1,15 @@
 ---
-title: trade-gate
-description: Drive the trade-gate trading agent (market state, strategy threads, proposals, reviews, workflow settings) from any host agent through its local HTTP API. Use when the user asks about what the trading agent is doing, wants to propose or close a trade idea, or wants to change the agent's watch list / risk / playbook.
+title: Trading Swarm
+description: Drive the Trading Swarm trading agent (market state, strategy threads, proposals, reviews, workflow settings) from any host agent through its local HTTP API. Use when the user asks about what the trading agent is doing, wants to propose or close a trade idea, or wants to change the agent's watch list / risk / playbook.
 metadata:
   version: 0.1.0
   author: 67ss67s
 license: MIT
 ---
 
-# trade-gate skill
+# Trading Swarm skill
 
-trade-gate is a local gateway at `http://127.0.0.1:18800` (start with `./start-demo.sh`). All money-moving
+Trading Swarm is a local gateway at `http://127.0.0.1:18800` (start with `./start-demo.sh`). All money-moving
 calls only *propose*; sizing, gates and execution are done by the gateway's code.
 
 ## Read state

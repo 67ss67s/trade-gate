@@ -7,7 +7,7 @@
 //   npm run funnel --workspace packages/gateway -- --no-write   # 只打印,不写文档
 //
 // 结果写入 design notes。K 线走 backtest.ts 的磁盘缓存
-// (~/.trade-gate/demo/klines),所以第二次跑基本不发请求。
+// (~/.trading-swarm/demo/klines),所以第二次跑基本不发请求。
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';

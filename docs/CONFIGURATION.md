@@ -9,19 +9,19 @@ wins unless the variable is set again.
 
 | Path | What |
 |---|---|
-| `~/.trade-gate/demo/state.sqlite` | everything: episodes, threads, intents, workflow, strategies, screens, chat, logs |
-| `~/.trade-gate/secrets/apikey-demo.json` | only for the optional Rust `demo` backend (`{"api_key","api_secret"}` from demo.binance.com) |
-| `~/.trade-gate/run/execd.sock` | only when `execd` runs |
+| `~/.trading-swarm/demo/state.sqlite` | everything: episodes, threads, intents, workflow, strategies, screens, chat, logs |
+| `~/.trading-swarm/secrets/apikey-demo.json` | only for the optional Rust `demo` backend (`{"api_key","api_secret"}` from demo.binance.com) |
+| `~/.trading-swarm/run/execd.sock` | only when `execd` runs |
 
 `TG_DEMO_HOME` moves the whole directory, `TG_DEMO_DB` the database alone. Nothing is written into the
-repository. **Factory reset** = delete `~/.trade-gate/demo/state.sqlite`.
+repository. **Factory reset** = delete `~/.trading-swarm/demo/state.sqlite`.
 
 ## Environment variables
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `TG_DEMO_PORT` | `18800` | gateway HTTP port (binds 127.0.0.1) |
-| `TG_DEMO_HOME` | `~/.trade-gate` | state directory |
+| `TG_DEMO_HOME` | `~/.trading-swarm` | state directory |
 | `TG_DEMO_DB` | `<home>/demo/state.sqlite` | database path |
 | `TG_DEMO_BRAIN` | `claude` if the CLI is on PATH, else `stub` | initial judgment brain: `claude` · `codex` · `pi` · `stub` |
 | `TG_DEMO_CHEAP_BRAIN` | same as brain | brain for the information officer and screener one-liners |
@@ -29,7 +29,7 @@ repository. **Factory reset** = delete `~/.trade-gate/demo/state.sqlite`.
 | `TG_DEMO_CODEX_MODEL` | (CLI default) | model passed to `codex exec -m` |
 | `TG_DEMO_PI_PROVIDER` / `TG_DEMO_PI_MODEL` | unset | `provider/model` for the `pi` CLI; both required to use `pi` |
 | `TG_DEMO_BACKEND` | `auto` | `paper` · `cli` · `agent_mcp` · `demo`; `auto` = `demo` iff the demo key file exists, else the last persisted backend, else `paper` |
-| `TG_DEMO_CLI_PROFILE` | `tgate-demo` | `binance-cli` profile name for the `cli` backend |
+| `TG_DEMO_CLI_PROFILE` | `tswarm-demo` | `binance-cli` profile name for the `cli` backend |
 | `TG_EXEC_AGENT_CLI` / `TG_EXEC_AGENT_MODEL` | `claude` / `sonnet` | host CLI and model for the `agent_mcp` backend |
 | `TG_DEMO_TF` | `15m` | initial timeframe (`1m` … `1d`) |
 | `TG_DEMO_WATCHLIST` | `BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT` | initial watch list, comma-separated |

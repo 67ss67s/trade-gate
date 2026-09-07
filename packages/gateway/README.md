@@ -1,4 +1,4 @@
-# @trade-gate/gateway
+# @trading-swarm/gateway
 
 TS network/control-plane process. **Foundation layer** (see
 §15.1): just the two pieces everything else in the gateway will sit on top of —
@@ -15,9 +15,9 @@ Nothing here reads or writes `exec.sqlite` (execd's own database) or exchange cr
 ## `ExecClient`
 
 ```ts
-import { ExecClient } from '@trade-gate/gateway';
+import { ExecClient } from '@trading-swarm/gateway';
 
-const client = new ExecClient(); // socketPath defaults to ~/.trade-gate/run/execd.sock
+const client = new ExecClient(); // socketPath defaults to ~/.trading-swarm/run/execd.sock
 const health = await client.call('exec.health', {});
 const sub = client.subscribe(0, (event) => console.log(event.event, event.seq));
 // ...
@@ -26,7 +26,7 @@ client.close();
 ```
 
 - `call(method, params, {timeoutMs?})` — typed per method via `ExecMethods` (from
-  `@trade-gate/contracts`); default 10s, 30s for `exec.account.snapshot`
+  `@trading-swarm/contracts`); default 10s, 30s for `exec.account.snapshot`
   (docs/contracts/README.md §8). Rejects with `ExecRpcError` (code/kind/retryable/details) on a
   JSON-RPC error frame, or **`ExecTimeout`** if nothing came back in time.
 - **A timeout is not a failure.** For a write method (`exec.intent.propose`,
@@ -49,7 +49,7 @@ client.close();
 ## `openStateDb`
 
 ```ts
-import { openStateDb } from '@trade-gate/gateway';
+import { openStateDb } from '@trading-swarm/gateway';
 
 const db = openStateDb('/path/to/state.sqlite'); // creates the file + runs migrations if needed
 db.appendEvent({ event: 'run.started', at: Date.now(), source: 'gateway', json: '{}' });

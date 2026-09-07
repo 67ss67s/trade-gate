@@ -66,7 +66,7 @@ npm install
 
 That is a complete, key-less run: public Binance futures market data, an in-process **paper** account, and
 the thesis formed by Claude Code if the `claude` CLI is on your PATH, otherwise by a deterministic stub.
-State (sqlite, settings, episodes) lives in `~/.trade-gate`, never in the repository; a fresh clone inherits
+State (sqlite, settings, episodes) lives in `~/.trading-swarm`, never in the repository; a fresh clone inherits
 nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` executor.
 
 ## Replicate this agent, step by step
@@ -79,7 +79,7 @@ nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` execu
    ```
 3. **First run, no keys** — `./start-demo.sh` and open the UI URL it prints (http://127.0.0.1:5180 unless you set `TG_UI_PORT`; the API is on `TG_DEMO_PORT`, default 18800). Public Binance market data,
    an in-process paper account, and the thesis formed by Claude Code if installed, otherwise by a
-   deterministic stub. Nothing is written into the repository; state lives in `~/.trade-gate`.
+   deterministic stub. Nothing is written into the repository; state lives in `~/.trading-swarm`.
 4. **Watch a cycle** — the home page shows the five stations. *Intel* runs the information officer,
    *Screener* scores candidates, *Judgments* shows every model decision with its evidence `E1..En`, the
    exact prompt, the raw answer and every risk gate's reason. Most decisions are `WATCH` / `NO_TRADE`.
@@ -91,7 +91,7 @@ nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` execu
    own auth; the gateway never sees a provider key.
 8. **Go to Binance Demo Trading through Agent OS** — create a key at https://demo.binance.com, then
    ```bash
-   ./node_modules/.bin/binance-cli profile create    # name tgate-demo · env demo
+   ./node_modules/.bin/binance-cli profile create    # name tswarm-demo · env demo
    TG_DEMO_BACKEND=cli ./start-demo.sh
    ```
    or use the Binance MCP Server through Claude Code: `claude "/mcp"` → authenticate `binance-mcp-server`,
@@ -123,14 +123,14 @@ profile store, Claude Code keeps the MCP OAuth session, the model CLIs keep thei
   order through the official CLI with `BINANCE_API_ENV=demo` and a named profile. Conditional stop /
   take-profit legs use the algo-order endpoints.
   ```bash
-  ./node_modules/.bin/binance-cli profile create    # name: tgate-demo · env: demo · key from https://demo.binance.com
+  ./node_modules/.bin/binance-cli profile create    # name: tswarm-demo · env: demo · key from https://demo.binance.com
   TG_DEMO_BACKEND=cli ./start-demo.sh
   ```
 - **Binance MCP Server (recommended).** The MCP server admits allow-listed hosts (Claude Code among them), so Trading Swarm
   drives it *through* Claude Code: each write operation is one short host session told exactly which tool to
   call. Log in once — `claude "/mcp"` → `binance-mcp-server` → Authenticate — then
   `TG_DEMO_BACKEND=agent_mcp ./start-demo.sh`.
-- **We publish a skill too.** [`skills/trade-gate/SKILL.md`](skills/trade-gate/SKILL.md) lets any host agent
+- **We publish a skill too.** [`skills/trading-swarm/SKILL.md`](skills/trading-swarm/SKILL.md) lets any host agent
   (Claude Code, Codex, OpenClaw…) drive this gateway over its HTTP API — read the pipeline, propose, close,
   change the watch list.
 

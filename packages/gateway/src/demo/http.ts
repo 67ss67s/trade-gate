@@ -210,7 +210,7 @@ export function createServer(rt: DemoRuntime, store: DemoStore, options: ServerO
   // interactive `profile create`. The key is pasted there and stays in binance-cli's own profile store.
   route('POST', '/api/execution/setup-cli', guarded(async (_req, res) => {
     const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
-    const profile = process.env['TG_DEMO_CLI_PROFILE'] ?? 'tgate-demo';
+    const profile = process.env['TG_DEMO_CLI_PROFILE'] ?? 'tswarm-demo';
     const command = `${defaultBinanceCliBin(repoRoot)} profile create --name ${profile}`;
     const instructions = `1. 到 https://demo.binance.com 开 Demo Trading,生成一对 API key。\n2. 终端里跑:${command}(环境选 demo,粘 key/secret)。\n3. 回来点「检查连接」。`;
     const opened = openTerminal(command);

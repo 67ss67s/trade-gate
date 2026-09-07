@@ -13,7 +13,7 @@ export type StrategyState =
 export type Action = 'NO_TRADE' | 'WATCH' | 'PROPOSE' | 'HOLD' | 'ADD' | 'REDUCE' | 'EXIT' | 'INVALIDATE';
 export type Direction = 'long' | 'short';
 /**
- * Execution backend. `paper` = in-process simulator; `demo` = the Rust tgate-demo-exec child;
+ * Execution backend. `paper` = in-process simulator; `demo` = the Rust tswarm-demo-exec child;
  * `cli` = the official binance-cli (Agent OS channel); `agent_mcp` = an agent CLI driving Binance's
  * official MCP server (execution-agent.ts); `mcp` = the gateway itself calling that same MCP server
  * over its own OAuth token, through a human-confirmed tool map (execution-mcp.ts) — no model at all.

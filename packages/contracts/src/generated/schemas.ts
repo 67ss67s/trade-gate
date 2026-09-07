@@ -9,7 +9,7 @@
 export const schemas = {
   "account_snapshot": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/account_snapshot.json",
+    "$id": "https://trading-swarm.dev/schema/account_snapshot.json",
     "title": "AccountSnapshot",
     "description": "账户真相(设计 §6.2 account.truth / Codex review #6):每个组件各自 observed_at、取数区间、completeness;经济组件哈希 = account_version;组件缺失或跨度过大 → inconsistent(gate 拒开仓);不可得 → unavailable。",
     "type": "object",
@@ -601,7 +601,7 @@ export const schemas = {
   },
   "attempt": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/attempt.json",
+    "$id": "https://trading-swarm.dev/schema/attempt.json",
     "title": "ExecutionAttempt",
     "description": "一次对交易所的写调用(设计 §5.1)。clientOrderId 与完整订单指纹在调用前持久化(stage=before_submit);同 id 重发必须是交易所级幂等,否则不重发;结果 unknown 非终态,由 reconciler 按 clientOrderId 收敛。",
     "type": "object",
@@ -726,7 +726,7 @@ export const schemas = {
   },
   "authorization": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/authorization.json",
+    "$id": "https://trading-swarm.dev/schema/authorization.json",
     "title": "Authorization",
     "description": "对某个 plan_hash 的授权(设计 §5.1)。by=user 需要 confirm_echo(结构化确认:审批面逐字回填关键字段,execd 与 plan 派生的 confirm_fields 逐字比对);by=policy 只在 LiveCapped 且上限内出现(v1 feature-gate 关闭)。",
     "type": "object",
@@ -824,7 +824,7 @@ export const schemas = {
   },
   "common": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/common.json",
+    "$id": "https://trading-swarm.dev/schema/common.json",
     "title": "Common",
     "description": "所有契约共享的基础类型。金额/价格/数量一律十进制字符串,时间戳一律 unix 毫秒整数,枚举一律小写 snake_case。",
     "$defs": {
@@ -1201,7 +1201,7 @@ export const schemas = {
   },
   "demo_portfolio_capacity": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/demo_portfolio_capacity.json",
+    "$id": "https://trading-swarm.dev/schema/demo_portfolio_capacity.json",
     "title": "DemoPortfolioCapacity",
     "description": "Portfolio Manager 典型止损容量估算；不是执行授权。金额为十进制字符串，不能计算的字段显式 null。",
     "type": "object",
@@ -1584,7 +1584,7 @@ export const schemas = {
   },
   "events": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/events.json",
+    "$id": "https://trading-swarm.dev/schema/events.json",
     "title": "ExecEvent",
     "description": "execd 发出的事件(UDS 通知 exec.event,同时落 exec.sqlite events 表,seq 单调,支持 since_seq 回放)。gateway 把它桥接到自己的事件总线与 events 表——'事件即审计'口径(设计 §4)。",
     "type": "object",
@@ -1682,7 +1682,7 @@ export const schemas = {
   },
   "exchange_order": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/exchange_order.json",
+    "$id": "https://trading-swarm.dev/schema/exchange_order.json",
     "title": "ExchangeOrderObservation",
     "description": "交易所订单的观察值(设计 §5.1):不可变、按 observed_at 追加;订单状态从最新观察派生。同一 exchange_order_id 的观察序列必须满足 transitions/exchange_order_status.json 的单调性,否则标 ORDER_STATE_UNKNOWN。",
     "type": "object",
@@ -1801,7 +1801,7 @@ export const schemas = {
   },
   "fill": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/fill.json",
+    "$id": "https://trading-swarm.dev/schema/fill.json",
     "title": "Fill",
     "description": "成交观察值(设计 §5.1),不可变;(account, exchange_order_id, trade_id) 唯一。",
     "type": "object",
@@ -1895,7 +1895,7 @@ export const schemas = {
   },
   "intent": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/intent.json",
+    "$id": "https://trading-swarm.dev/schema/intent.json",
     "title": "Intent",
     "description": "动钱的唯一提议记录(设计 §5.1)。模型/UI/Exit DSL 只能提议;经济字段在 ExecutableOrderPlan 里物化并哈希;状态只按 transitions/intent_status.json 迁移。",
     "type": "object",
@@ -2392,7 +2392,7 @@ export const schemas = {
   },
   "plan": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/plan.json",
+    "$id": "https://trading-swarm.dev/schema/plan.json",
     "title": "ExecutableOrderPlan",
     "description": "审批前物化的可执行计划(设计 §5.1)。审批绑定的是 plan_hash = sha256(canonical_json(economic));basis 不进哈希。重闸只能拒绝,不能改 economic;经济字段实质变化 → 新 plan(version+1)+ 作废旧授权。",
     "type": "object",
@@ -2870,7 +2870,7 @@ export const schemas = {
   },
   "policy": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/policy.json",
+    "$id": "https://trading-swarm.dev/schema/policy.json",
     "title": "ExecPolicy",
     "description": "execd 持有的 policy 子集(设计 §10):模式、authority、上限。gateway 的 gate v2 与 execd 的重闸读同一份;改动需 policy.set + confirm 回填。金丝雀期默认值取 Codex 保守值(§17.2),向导里显式输入。",
     "type": "object",
@@ -3086,7 +3086,7 @@ export const schemas = {
   },
   "position_effect": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/position_effect.json",
+    "$id": "https://trading-swarm.dev/schema/position_effect.json",
     "title": "PositionEffect",
     "description": "intent 的经济完成定义(设计 §5.1):开仓=目标数量成交且剩余已撤且保护腿已确认在交易所;平仓=数量核实;保护=腿存在;撤单=订单终态;划转=交易所回执可查。由 reconciler 按读派生并落库,intent 只在 status=satisfied 时才 completed。",
     "type": "object",
@@ -3194,9 +3194,9 @@ export const schemas = {
   },
   "rpc": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://trade-gate.dev/schema/rpc.json",
+    "$id": "https://trading-swarm.dev/schema/rpc.json",
     "title": "ExecutionServiceRpc",
-    "description": "gateway ↔ execd 的 UDS 契约:JSON-RPC 2.0,每帧一行(newline-delimited,UTF-8,单帧 ≤ 4 MiB)。execd 监听 ~/.trade-gate/run/execd.sock(0600)。请求方法见 Method;execd → gateway 的通知只有 exec.event。错误码映射见 tables/error_codes.json。",
+    "description": "gateway ↔ execd 的 UDS 契约:JSON-RPC 2.0,每帧一行(newline-delimited,UTF-8,单帧 ≤ 4 MiB)。execd 监听 ~/.trading-swarm/run/execd.sock(0600)。请求方法见 Method;execd → gateway 的通知只有 exec.event。错误码映射见 tables/error_codes.json。",
     "oneOf": [
       {
         "$ref": "#/$defs/RpcRequest"
@@ -4220,7 +4220,7 @@ export const schemas = {
             "description": "base64;明文是 UTF-8 JSON {api_key, api_secret}"
           }
         },
-        "description": "浏览器用 execd 的 P-256 公钥做 ECDH → HKDF-SHA256(salt 空, info 'trade-gate/credentials/v1') → AES-256-GCM;gateway 只转发密文,TS 进程永远拿不到明文(AGENTS.md 规矩 1)"
+        "description": "浏览器用 execd 的 P-256 公钥做 ECDH → HKDF-SHA256(salt 空, info 'trading-swarm/credentials/v1') → AES-256-GCM;gateway 只转发密文,TS 进程永远拿不到明文(AGENTS.md 规矩 1)"
       },
       "CredentialsPublicKeyParams": {
         "type": "object",

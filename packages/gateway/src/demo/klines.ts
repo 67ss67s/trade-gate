@@ -14,11 +14,11 @@ function fapiBase(): string {
 /**
  * Read per call, not once at import: `TG_DEMO_KLINE_CACHE_DIR` is set by tests in `beforeAll`, which
  * runs AFTER this module is imported — a module-level const meant those tests silently read the real
- * ~/.trade-gate cache and only passed while it happened to be empty (2026-09-05: warming it for the
+ * ~/.trading-swarm cache and only passed while it happened to be empty (2026-09-05: warming it for the
  * funnel made three blind-replay tests read live BTC bars).
  */
 function cacheDir(): string {
-  return process.env['TG_DEMO_KLINE_CACHE_DIR'] ?? join(homedir(), '.trade-gate', 'demo', 'klines');
+  return process.env['TG_DEMO_KLINE_CACHE_DIR'] ?? join(homedir(), '.trading-swarm', 'demo', 'klines');
 }
 
 

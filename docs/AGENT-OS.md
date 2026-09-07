@@ -13,7 +13,7 @@ conditional stop and take-profit legs, cancel, flatten) is one invocation of the
 `BINANCE_API_ENV=demo` and a named profile. The gateway never sees the key:
 
 ```bash
-./node_modules/.bin/binance-cli profile create   # name tgate-demo · env demo · key/secret from https://demo.binance.com
+./node_modules/.bin/binance-cli profile create   # name tswarm-demo · env demo · key/secret from https://demo.binance.com
 TG_DEMO_BACKEND=cli ./start-demo.sh
 ```
 
@@ -48,7 +48,7 @@ directly; only account and order queries cost a host session, and those are cach
 
 ## 3. Trading Swarm as a skill
 
-[`skills/trade-gate/SKILL.md`](../skills/trade-gate/SKILL.md) is a Skills Hub-style skill any host agent can
+[`skills/trading-swarm/SKILL.md`](../skills/trading-swarm/SKILL.md) is a Skills Hub-style skill any host agent can
 load. It teaches the host the gateway's HTTP API and the rules: money-moving calls only propose, sizing and
 gates are the gateway's, never call `/api/halt` unless the user asks, quote numbers from the API.
 

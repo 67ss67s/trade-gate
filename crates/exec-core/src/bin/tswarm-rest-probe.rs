@@ -1,11 +1,11 @@
-//! tgate-rest-probe —— A1 主账户 API key 探针(设计 §3.5「三件事」+ §14 向导 4b 权限探测)。
+//! tswarm-rest-probe —— A1 主账户 API key 探针(设计 §3.5「三件事」+ §14 向导 4b 权限探测)。
 //!
 //! 默认流程**全部只读**:服务器时间偏移 → key 权限位 → 现货余额概要 → 合约账户概要 +
 //! 持仓模式 → 子账户列表(找 Agentic virtual sub 的标识字段)→ 每个子账户的资产 →
 //! 万能划转历史。**只有** `--transfer-test` + 环境变量 `TG_ALLOW_TRANSFER=1` 双开关同时给出
 //! 才会发一笔 `universalTransfer`(这是动钱操作,默认关闭,需操作者显式确认后手动运行)。
 //!
-//! 凭证来源只有 env `TG_MAIN_API_KEY`/`TG_MAIN_API_SECRET` 或 `~/.trade-gate/secrets/apikey-main.json`
+//! 凭证来源只有 env `TG_MAIN_API_KEY`/`TG_MAIN_API_SECRET` 或 `~/.trading-swarm/secrets/apikey-main.json`
 //! (0600);**不接受命令行传密钥**。输出:stdout markdown 报告 + `--json-out` 脱敏 JSON。
 
 use std::path::PathBuf;
@@ -18,9 +18,9 @@ use exec_core::binance::spot_sapi::{AccountType, email_fingerprint, mask_email};
 use exec_core::secrets::{load_main_credentials, mask};
 
 #[derive(Parser, Debug)]
-#[command(name = "tgate-rest-probe", about = "trade-gate A1:主账户 key 权限与主/子账户联动探针(默认只读)")]
+#[command(name = "tswarm-rest-probe", about = "Trading Swarm A1:主账户 key 权限与主/子账户联动探针(默认只读)")]
 struct Cli {
-    /// 凭证文件路径(默认 ~/.trade-gate/secrets/apikey-main.json;env 优先)
+    /// 凭证文件路径(默认 ~/.trading-swarm/secrets/apikey-main.json;env 优先)
     #[arg(long)]
     secrets: Option<PathBuf>,
     /// 打印真实金额(默认只打印条数,金额脱敏)
@@ -196,7 +196,7 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
             if !restrictions.ip_restrict {
                 warnings.push("ipRestrict=false:建议给这把 key 配 IP 白名单(主账户 key 爆炸半径大于子账户 OAuth)".into());
             }
-            for missing in restrictions.missing_for_trade_gate() {
+            for missing in restrictions.missing_for_trading_swarm() {
                 warnings.push(format!("缺权限:{missing}"));
             }
             permits_universal_transfer = Some(restrictions.permits_universal_transfer);
@@ -501,7 +501,7 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
 }
 
 fn print_markdown(report: &Report) {
-    println!("# tgate-rest-probe 报告");
+    println!("# tswarm-rest-probe 报告");
     println!();
     println!("- 时间:{} ms  - key:{}({})  - 金额显示:{}", report.generated_at_ms, report.key_masked, report.key_source, report.show_balances);
     println!();

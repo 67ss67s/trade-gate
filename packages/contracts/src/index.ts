@@ -1,4 +1,4 @@
-// @trade-gate/contracts — the package. See README.md for the full export list and how to
+// @trading-swarm/contracts — the package. See README.md for the full export list and how to
 // regenerate. Nothing in this file (or anything it imports) reads schema/transitions/tables at
 // runtime — generate.ts inlines all of that into src/generated/* ahead of time.
 

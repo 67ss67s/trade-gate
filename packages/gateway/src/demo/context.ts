@@ -202,7 +202,7 @@ export function buildContext(inp: EpisodeInputs): BuiltContext {
   const allowed: string[] = allowedActions(node);
 
   const system = [
-    '你是 trade-gate 的判断模块。你不是聊天助手,不做寒暄。你只在被事件唤醒时读一次新鲜状态,维护一个交易论点(thesis),并输出一个有限的判断。',
+    '你是 Trading Swarm 的判断模块。你不是聊天助手,不做寒暄。你只在被事件唤醒时读一次新鲜状态,维护一个交易论点(thesis),并输出一个有限的判断。',
     '硬红线:',
     '1. 数量、杠杆、风险预算由代码决定,你只给方向、入场方式(市价或限价区间)、止损价、止盈价(可给 1-2 个)和理由。',
     '2. 只能引用下面登记过的证据编号(E1、E2…);每条 reason 末尾必须用 [E3] 这种形式标注依据,没有依据的话不要写这条理由。',

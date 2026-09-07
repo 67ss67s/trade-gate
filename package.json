@@ -1,9 +1,9 @@
 {
-  "name": "trade-gate",
+  "name": "trading-swarm",
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "agent-first trading gateway: TS gateway + Rust execd + React UI (see docs/design)",
+  "description": "agent-first trading swarm: TS gateway + Rust execd + React UI (see docs/design)",
   "workspaces": [
     "packages/*"
   ],

@@ -145,7 +145,7 @@ export function codexBrain(opts: { model?: string | null; command?: string | nul
     name,
     async complete(system, user, o) {
       const started = Date.now();
-      const dir = mkdtempSync(join(tmpdir(), 'tgate-codex-'));
+      const dir = mkdtempSync(join(tmpdir(), 'tswarm-codex-'));
       const outFile = join(dir, 'last.txt');
       try {
         const args = ['exec', '--skip-git-repo-check', '--ephemeral', '-s', 'read-only', '-C', dir, '-o', outFile, '--color', 'never'];

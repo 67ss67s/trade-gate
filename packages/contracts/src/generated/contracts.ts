@@ -204,7 +204,7 @@ export type CancelEconomics1 = {
   [k: string]: unknown;
 };
 /**
- * gateway ↔ execd 的 UDS 契约:JSON-RPC 2.0,每帧一行(newline-delimited,UTF-8,单帧 ≤ 4 MiB)。execd 监听 ~/.trade-gate/run/execd.sock(0600)。请求方法见 Method;execd → gateway 的通知只有 exec.event。错误码映射见 tables/error_codes.json。
+ * gateway ↔ execd 的 UDS 契约:JSON-RPC 2.0,每帧一行(newline-delimited,UTF-8,单帧 ≤ 4 MiB)。execd 监听 ~/.trading-swarm/run/execd.sock(0600)。请求方法见 Method;execd → gateway 的通知只有 exec.event。错误码映射见 tables/error_codes.json。
  */
 export type ExecutionServiceRpc = RpcRequest | RpcSuccess | RpcFailure | RpcNotification;
 export type RpcId = string | number;
@@ -1246,7 +1246,7 @@ export interface OauthRevokeResult {
   ok: boolean;
 }
 /**
- * 浏览器用 execd 的 P-256 公钥做 ECDH → HKDF-SHA256(salt 空, info 'trade-gate/credentials/v1') → AES-256-GCM;gateway 只转发密文,TS 进程永远拿不到明文(AGENTS.md 规矩 1)
+ * 浏览器用 execd 的 P-256 公钥做 ECDH → HKDF-SHA256(salt 空, info 'trading-swarm/credentials/v1') → AES-256-GCM;gateway 只转发密文,TS 进程永远拿不到明文(AGENTS.md 规矩 1)
  */
 export interface SealedSecret {
   alg: "ecdh-p256-hkdf-sha256-aes256gcm";
