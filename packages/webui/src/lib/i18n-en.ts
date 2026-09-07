@@ -6,6 +6,7 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '接入币安 →': 'Connect Binance →',
   '币安官方 MCP 还没登录': 'Binance MCP is not logged in yet',
   '币安官方 MCP(经 Claude Code)': 'Binance MCP Server (through Claude Code)',
   '点「用 Claude 登录币安」会弹一个终端跑 claude "/mcp":选 binance-mcp-server → Authenticate → 浏览器里同意。回来后切到该通道并检查连接;网关不保存任何 token。': '"Log in to Binance with Claude" opens a terminal running claude "/mcp": pick binance-mcp-server → Authenticate → approve in the browser. Then switch to this channel and check the connection; the gateway stores no token.',

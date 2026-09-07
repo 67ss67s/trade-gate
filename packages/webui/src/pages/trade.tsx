@@ -23,6 +23,7 @@ import { SymbolPicker } from '@/components/symbol-picker';
 import { ChevronDown, ChevronLeft, ChevronRight, CircleQuestionMark } from 'lucide-react';
 import { askAgent, whyQuestion } from '@/lib/ask-agent';
 import { Button } from '@/components/ui/button';
+import { openExecutionSetup } from '@/components/execution-panel';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -995,12 +996,17 @@ export function TradePage() {
             className="min-h-0 flex-1"
             contentClassName="min-h-0 flex-1 overflow-y-auto"
             actions={
+              <>
+              {overviewQ.data?.account?.backend === 'paper' ? (
+                <Button size="xs" variant="outline" className="border-warn/50 text-warn" onClick={openExecutionSetup}>{t('接入币安 →')}</Button>
+              ) : null}
               <Tabs value={bottomTab} onValueChange={(v) => setBottomTab(v as BottomTab)}>
                 <TabsList>
                   <TabsTrigger value="positions">{t('持仓')}</TabsTrigger>
                   <TabsTrigger value="orders">{t('挂单')}</TabsTrigger>
                 </TabsList>
               </Tabs>
+              </>
             }
           >
             {bottomTab === 'positions' ? <PositionsTable positions={positions} threads={threads} openOrders={openOrders} /> : <OpenOrdersTable orders={openOrders} />}

@@ -82,6 +82,14 @@ function NetCheckRow() {
   );
 }
 
+/** Jump to the Agent page's execution tab (channel setup). Used by the top bar, the trade page and alerts. */
+export function openExecutionSetup(): void {
+  try { window.localStorage.setItem('tg.agent.side.tab', 'execution'); } catch { /* private mode */ }
+  if (window.location.hash.slice(1).split('?')[0] !== 'agent') window.location.hash = 'agent';
+  window.dispatchEvent(new CustomEvent('tg:execution-setup'));
+  window.setTimeout(() => document.getElementById('execution-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+}
+
 export function ExecutionBadge({ className }: { className?: string }) {
   const execQ = useExecutionQuery();
   const view = execQ.data;
@@ -93,19 +101,17 @@ export function ExecutionBadge({ className }: { className?: string }) {
       <TooltipTrigger asChild>
         <button
           type="button"
-          onClick={() => {
-            if (window.location.hash.slice(1).split('?')[0] !== 'agent') window.location.hash = 'agent';
-            window.setTimeout(() => document.getElementById('execution-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-          }}
+          onClick={openExecutionSetup}
           className={cn(
             'rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground',
             isAgent && conn === 'connected' && 'border-up/40 text-up',
             isAgent && conn === 'needs_auth' && 'border-warn/40 text-warn',
             isAgent && conn === 'unavailable' && 'border-destructive/40 text-destructive',
+            view.backend === 'paper' && 'border-warn/50 bg-warn/10 text-warn hover:text-warn',
             className,
           )}
         >
-          {backendLabel(view.backend)}
+          {backendLabel(view.backend)}{view.backend === 'paper' ? ` · ${t('接入币安 →')}` : ''}
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom">

@@ -2,7 +2,7 @@
  * Agent 页右栏:顶部固定「异常 / 待办」块(不随 tab 隐藏),下面 tabs 状态 | 执行。
  * 状态 = 线程 / 仓位 / 今日用量的紧凑视图;执行 = ExecutionPanel。
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
 import { api } from '@/api/client';
@@ -42,6 +42,11 @@ export function AgentSide() {
       return 'execution';
     }
   });
+  useEffect(() => {
+    const open = () => setTab('execution');
+    window.addEventListener('tg:execution-setup', open);
+    return () => window.removeEventListener('tg:execution-setup', open);
+  }, []);
   const pick = (t: string) => {
     setTab(t as Tab);
     try {
