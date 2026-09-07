@@ -138,7 +138,6 @@ export function HomePage() {
   const marketStateQ = useQuery({ queryKey: ['market-state'], queryFn: api.marketState });
   const screenerQ = useQuery({ queryKey: ['screener', 'latest', 'short'], queryFn: () => api.screenerLatest('short') });
   const episodesQ = useQuery({ queryKey: ['episodes'], queryFn: () => api.episodes({ limit: 100 }) });
-  const strategiesQ = useQuery({ queryKey: ['strategies'], queryFn: () => api.strategies(true) });
   const executionQ = useQuery({ queryKey: ['execution'], queryFn: api.execution, refetchInterval: 30_000 });
   const threadsQ = useQuery({ queryKey: ['threads', 'open'], queryFn: () => api.threads('open') });
   const positionsQ = useQuery({ queryKey: ['positions'], queryFn: api.positions });
@@ -172,11 +171,10 @@ export function HomePage() {
   ];
 
   // ---- STRATEGY ----
-  const activeIds = strategiesQ.data?.active ?? [];
-  const activeNames = strategiesQ.data ? strategiesQ.data.strategies.filter((s) => activeIds.includes(s.id)).map((s) => s.name) : [];
+  const activeIds: string[] = (workflow as { active_strategies?: string[] } | undefined)?.active_strategies ?? [];
   const strategyFacts: Fact[] = [
-    { label: t('启用策略'), value: activeNames.length ? activeNames.join(' · ') : workflow?.playbook_text ? t('自定义 Playbook') : '—' },
-    { label: t('策略库'), value: strategiesQ.data ? t('共 {n} 条', { n: strategiesQ.data.strategies.length }) : '—' },
+    { label: t('启用策略'), value: activeIds.length ? activeIds.join(' · ') : '—' },
+    { label: t('Playbook'), value: workflow?.playbook_text ? t('自定义') : t('内置') },
     { label: t('判断周期'), value: workflow?.timeframe ?? '—' },
   ];
 
@@ -203,7 +201,7 @@ export function HomePage() {
   const stations: { no: string; name: string; role: string; ok: boolean; facts: Fact[]; href: string; cta: string }[] = [
     { no: '01', name: 'RADAR', role: t('扫描新闻、主流币、异动,把环境摆到台面上。'), ok: state !== null, facts: radarFacts, href: '#screener', cta: t('打开 →') },
     { no: '02', name: 'THESIS', role: t('把环境变成判断:不交易、观察,或提议开仓。'), ok: episodes.length > 0, facts: thesisFacts, href: '#judgments', cta: t('打开 →') },
-    { no: '03', name: 'STRATEGY', role: t('存版本、算胜率,决定哪条规则能上场。'), ok: (strategiesQ.data?.strategies.length ?? 0) > 0, facts: strategyFacts, href: '#strategies', cta: t('打开 →') },
+    { no: '03', name: 'STRATEGY', role: t('规则即数据:入场、止损、失效条件写成策略,模型只能从中选。'), ok: activeIds.length > 0, facts: strategyFacts, href: '#agent', cta: t('打开 →') },
     { no: '04', name: 'RISK', role: t('代码闸,不商量:单笔风险、杠杆、同时能开几仓。'), ok: workflow !== null, facts: riskFacts, href: '#agent', cta: t('工作流 →') },
     { no: '05', name: 'EXECUTION', role: t('把批准的判断变成真实的下单和持仓。'), ok: execution !== null, facts: executionFacts, href: '#trade', cta: t('打开 →') },
   ];

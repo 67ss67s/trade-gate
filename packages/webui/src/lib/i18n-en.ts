@@ -6,6 +6,16 @@
 export const EN: Record<string, string> = {
 
   // ---- 外壳:侧栏 / 顶栏 / 状态栏 / 命令面板 ----
+  '规则即数据:入场、止损、失效条件写成策略,模型只能从中选。': 'Rules as data: entries, stops and invalidation live in strategies the model can only pick from.',
+  '自定义': 'custom',
+  '内置': 'built-in',
+  '首页': 'Home',
+  '总览': 'Overview',
+  '判断 · 对话': 'Judgment · Chat',
+  '信息员 · 筛选 · 复盘': 'Intel · Screener · Review',
+  '两个槽位:主脑管判断和对话,副脑管信息员、筛选和复盘。': 'Two slots: the primary brain does judgments and chat, the secondary brain does the information officer, screener and reviews.',
+  '要你点的:待批意图、设置提议。普通出策略不算,自动交易也不走这儿;默认 agent 在对话里自己批,设置页开了「对话执行需我确认」才会有意图进来。': 'Needs you: pending intents and settings proposals. Ordinary judgments and auto-trading do not land here; intents only appear when "chat execution needs my confirmation" is on in Settings.',
+  'agent_mcp = 每笔下单由 claude 子进程代调币安官方 MCP(默认 sonnet,读账户有缓存);纸面 / 模拟盘不花钱': 'agent_mcp = every order is one Claude subprocess calling the official Binance MCP (sonnet by default, account reads cached); paper / demo cost nothing',
   '登录用': 'Log in with',
   '用 Codex 登录币安': 'Log in to Binance with Codex',
   '备选': 'Alternative',

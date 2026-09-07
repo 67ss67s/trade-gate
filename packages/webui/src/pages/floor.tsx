@@ -48,7 +48,7 @@ export function FloorPage({ connected = true }: { connected?: boolean }) {
   const activityQ = useQuery<ActivityResponse>({ queryKey: ['activity'], queryFn: () => api.activity(200) });
   const botsQ = useQuery<BotsResponse>({ enabled: false, queryKey: ['bots'], queryFn: api.bots, refetchInterval: 30_000, retry: false });
   const executionQ = useQuery({ queryKey: ['execution'], queryFn: api.execution, refetchInterval: 30_000 });
-  const backtestQ = useQuery({ queryKey: ['backtest'], queryFn: () => api.backtests(5), refetchInterval: 30_000 });
+  const backtestQ = useQuery({ enabled: false, queryKey: ['backtest'], queryFn: () => api.backtests(5), refetchInterval: 30_000 });
   const historyQ = useQuery({ queryKey: ['history'], queryFn: () => api.history(200) });
   const riskQ = useQuery<RiskAlertsResponse>({ enabled: false, queryKey: ['risk', 'alerts', 'open'], queryFn: () => api.riskAlerts('open'), refetchInterval: 60_000, retry: false });
   const portfolioQ = useQuery<PortfolioSnapshotResponse>({ enabled: false, queryKey: ['portfolio', 'snapshot'], queryFn: api.portfolioSnapshot, refetchInterval: 60_000, retry: false });

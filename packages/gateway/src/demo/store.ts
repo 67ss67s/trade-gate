@@ -5,7 +5,6 @@ import { sourceLabel } from './info.js';
 import type { ActivityItem, ChatMessage, ChatSession, DemoIntent, EquityPoint, Episode, EpisodeSummary, InformationEvent, LogLine, MarketState, Strategy, StrategyRevision, StrategyThread, ThreadStatus, Workflow } from './types.js';
 import { summarize } from './types.js';
 import { ensureBreakoutRetestV2, StrategyLibrary } from './strategies.js';
-import type { BacktestRun, BacktestStep } from './backtest.js';
 import { ScreenStore } from './screener.js';
 
 export class DemoStore {
@@ -318,92 +317,5 @@ export class DemoStore {
     return Number(row.n);
   }
 
-  // ---- 盲测回放(migrations/0007_demo_backtest.sql;design notes)
-  // 回测判断故意不写 demo_episodes:它们不占每日判断上限,也不该混进「今日用量」的真实台账。
-
-  saveBacktestRun(r: BacktestRun): void {
-    this.db
-      .prepare(
-        `INSERT INTO demo_backtest_run(id, created_at, symbol, timeframe, from_ms, to_ms, mode, status, params_json, brain, prompt_version, progress_json, summary_json, error)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET status = excluded.status, progress_json = excluded.progress_json, summary_json = excluded.summary_json, error = excluded.error`,
-      )
-      .run(r.id, r.created_at, r.symbol, r.timeframe, r.from_ms, r.to_ms, r.mode, r.status, JSON.stringify(r.params), r.brain, r.prompt_version, r.progress ? JSON.stringify(r.progress) : null, r.summary ? JSON.stringify(r.summary) : null, r.error);
-  }
-  private toBacktestRun(row: Record<string, unknown>): BacktestRun {
-    return {
-      id: String(row['id']),
-      created_at: Number(row['created_at']),
-      symbol: String(row['symbol']),
-      timeframe: String(row['timeframe']),
-      from_ms: Number(row['from_ms']),
-      to_ms: Number(row['to_ms']),
-      mode: String(row['mode']) as BacktestRun['mode'],
-      status: String(row['status']) as BacktestRun['status'],
-      params: JSON.parse(String(row['params_json'])) as BacktestRun['params'],
-      brain: String(row['brain']),
-      prompt_version: String(row['prompt_version']),
-      progress: row['progress_json'] ? (JSON.parse(String(row['progress_json'])) as BacktestRun['progress']) : null,
-      summary: row['summary_json'] ? (JSON.parse(String(row['summary_json'])) as BacktestRun['summary']) : null,
-      error: row['error'] === null || row['error'] === undefined ? null : String(row['error']),
-    };
-  }
-  backtestRun(id: string): BacktestRun | null {
-    const row = this.db.prepare('SELECT * FROM demo_backtest_run WHERE id = ?').get(id) as Record<string, unknown> | undefined;
-    return row ? this.toBacktestRun(row) : null;
-  }
-  /** Newest first. */
-  backtestRuns(limit = 50): BacktestRun[] {
-    const rows = this.db.prepare('SELECT * FROM demo_backtest_run ORDER BY created_at DESC LIMIT ?').all(limit) as Record<string, unknown>[];
-    return rows.map((r) => this.toBacktestRun(r));
-  }
-  saveBacktestStep(s: BacktestStep): void {
-    this.db
-      .prepare(
-        `INSERT INTO demo_backtest_step(run_id, idx, at_ms, kind, trigger, visible_upto_ms, judgment_json, action, direction, confidence, gates_json, outcome_json, cost_json, strategy_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(run_id, idx) DO UPDATE SET judgment_json = excluded.judgment_json, action = excluded.action, direction = excluded.direction, confidence = excluded.confidence, gates_json = excluded.gates_json, outcome_json = excluded.outcome_json, cost_json = excluded.cost_json, strategy_id = excluded.strategy_id`,
-      )
-      .run(
-        s.run_id,
-        s.idx,
-        s.at_ms,
-        s.kind,
-        s.trigger,
-        s.visible_upto_ms,
-        s.judgment ? JSON.stringify({ judgment: s.judgment, error: s.error }) : s.error ? JSON.stringify({ judgment: null, error: s.error }) : null,
-        s.action,
-        s.direction,
-        s.confidence,
-        JSON.stringify(s.gates),
-        s.outcome ? JSON.stringify(s.outcome) : null,
-        s.cost ? JSON.stringify(s.cost) : null,
-        s.strategy_id ?? null,
-      );
-  }
-  /** Oldest first (idx order = the order the walk produced them). */
-  backtestSteps(runId: string): BacktestStep[] {
-    const rows = this.db.prepare('SELECT * FROM demo_backtest_step WHERE run_id = ? ORDER BY idx ASC').all(runId) as Record<string, unknown>[];
-    return rows.map((row) => {
-      const wrapped = row['judgment_json'] ? (JSON.parse(String(row['judgment_json'])) as { judgment: BacktestStep['judgment']; error: string | null }) : { judgment: null, error: null };
-      return {
-        run_id: String(row['run_id']),
-        idx: Number(row['idx']),
-        at_ms: Number(row['at_ms']),
-        kind: String(row['kind']) as BacktestStep['kind'],
-        trigger: row['trigger'] === null || row['trigger'] === undefined ? null : String(row['trigger']),
-        visible_upto_ms: Number(row['visible_upto_ms']),
-        judgment: wrapped.judgment,
-        action: row['action'] === null || row['action'] === undefined ? null : String(row['action']),
-        direction: (row['direction'] ?? null) as BacktestStep['direction'],
-        confidence: row['confidence'] === null || row['confidence'] === undefined ? null : Number(row['confidence']),
-        gates: row['gates_json'] ? (JSON.parse(String(row['gates_json'])) as BacktestStep['gates']) : [],
-        outcome: row['outcome_json'] ? (JSON.parse(String(row['outcome_json'])) as BacktestStep['outcome']) : null,
-        cost: row['cost_json'] ? (JSON.parse(String(row['cost_json'])) as BacktestStep['cost']) : null,
-        strategy_id: row['strategy_id'] === null || row['strategy_id'] === undefined ? null : String(row['strategy_id']),
-        error: wrapped.error ?? null,
-      };
-    });
-  }
 
 }

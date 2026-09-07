@@ -76,12 +76,10 @@ import { WatchPage } from '@/pages/watch';
 import { PageErrorBoundary } from '@/components/page-error-boundary';
 import { JudgmentsPage } from '@/pages/judgments';
 import { HistoryPage } from '@/pages/history';
-import { ReplayPage } from '@/pages/replay';
-import { StrategiesPage } from '@/pages/strategies';
 import { LogsPage } from '@/pages/logs';
 import { SettingsPage } from '@/pages/settings';
 
-const PAGE_IDS: Page[] = ['home', 'floor', 'trade', 'agent', 'watch', 'intel', 'screener', 'judgments', 'history', 'replay', 'strategies', 'logs', 'settings'];
+const PAGE_IDS: Page[] = ['home', 'floor', 'trade', 'agent', 'watch', 'intel', 'screener', 'judgments', 'history', 'logs', 'settings'];
 
 const LAST_PAGE_KEY = 'tg.page.last';
 
@@ -295,8 +293,6 @@ export default function App() {
             {page === 'watch' ? <WatchPage /> : null}
             {page === 'judgments' ? <JudgmentsPage /> : null}
             {page === 'history' ? <HistoryPage /> : null}
-            {page === 'replay' ? <ReplayPage /> : null}
-            {page === 'strategies' ? <StrategiesPage /> : null}
             {page === 'logs' ? <LogsPage /> : null}
             {page === 'settings' ? <SettingsPage /> : null}
             </PageErrorBoundary>

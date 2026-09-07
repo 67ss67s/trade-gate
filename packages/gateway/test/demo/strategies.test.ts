@@ -20,7 +20,6 @@ import { buildContext, PROMPT_VERSION } from '../../src/demo/context.js';
 import { validateJudgment } from '../../src/demo/schema.js';
 import { tfFeatures } from '../../src/demo/market.js';
 import { applyWorkflowPatch, DEFAULT_WORKFLOW } from '../../src/demo/workflow.js';
-import { breakdownByStrategy, type BacktestStep, type BacktestTrade } from '../../src/demo/backtest.js';
 import type { AccountView, Kline, MarketView } from '../../src/demo/types.js';
 
 const NOW = 1_788_500_000_000;
@@ -316,22 +315,6 @@ function step(over: Partial<BacktestStep>): BacktestStep {
   };
 }
 
-describe('per-strategy breakdown', () => {
-  it('splits trades by strategy_id and buckets the unlabelled ones', () => {
-    const trades = [
-      trade({ step_idx: 0, strategy_id: 'breakout_retest', r: 2, mae_r: -0.2 }),
-      trade({ step_idx: 1, strategy_id: 'breakout_retest', r: -1, mae_r: -1 }),
-      trade({ step_idx: 2, strategy_id: 'mtf_alignment', r: 0.5, mae_r: -0.6 }),
-      trade({ step_idx: 3, strategy_id: null, r: -1, mae_r: -1 }),
-    ];
-    const steps = [step({ idx: 0, strategy_id: 'breakout_retest' }), step({ idx: 1, strategy_id: 'breakout_retest' }), step({ idx: 2, strategy_id: 'mtf_alignment' }), step({ idx: 3 })];
-    const by = breakdownByStrategy(trades, steps);
-    expect(by['breakout_retest']).toMatchObject({ trades: 2, wins: 1, losses: 1, win_rate: 0.5, expectancy_r: 0.5, proposals: 2 });
-    expect(by['breakout_retest']!.mae_r_p50).toBeCloseTo(-0.6, 5);
-    expect(by['mtf_alignment']).toMatchObject({ trades: 1, wins: 1, expectancy_r: 0.5 });
-    expect(by['unattributed']).toMatchObject({ trades: 1, losses: 1 });
-  });
-});
 
 // ---------------------------------------------------------------- STATUS_ORDER 与 index 导出的稳定性
 

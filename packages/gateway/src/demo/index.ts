@@ -20,43 +20,7 @@ export { PaperBackend, DemoBackend, defaultDemoExecBin, type ExecBackend, type O
 export { CliBackend, defaultBinanceCliBin } from './execution-cli.js';
 export { AgentMcpBackend, probeMcpConnection, claudeLoginCommand, CLAUDE_LOGIN_COMMAND, lastJsonObject, commandOnPath, defaultAgentSpawn, claudeLoginInstructions, codexLoginInstructions, CODEX_MCP_BLOCKED_DETAIL, DEFAULT_MCP_NAME, DEFAULT_MCP_URL, type AgentCli, type AgentMcpOptions, type AgentSpawn, type McpConnection, type SpawnResult } from './execution-agent.js';
 export { simulateOutcome, missedMove, openTrade, stepTrade, tradeR, findFill, type Outcome, type OutcomeInput, type OutcomeStatus, type OpenTrade, type TradeStep } from './outcome.js';
-export {
-  BacktestManager,
-  estimateBacktest,
-  normalizeParams as normalizeBacktestParams,
-  countCandidates,
-  loadSeries,
-  loadKlines,
-  fetchKlineRange,
-  fetchKlineSpan,
-  mergeSpans,
-  missingSpans,
-  spansFromBars,
-  mergeBars,
-  visibleWindow,
-  lastClosedIndex,
-  ticker24hFromBars,
-  assertBlind,
-  judgeOnce,
-  BACKTEST_DEFAULTS,
-  BACKTEST_LIMITS,
-  type BacktestMode,
-  type BacktestStatus,
-  type BacktestParams,
-  type BacktestRun,
-  type BacktestStep,
-  type BacktestTrade,
-  type BacktestSummary,
-  type BacktestEstimate,
-  type BacktestProgress,
-  type BacktestCost,
-  type BacktestDeps,
-  type BacktestSeries,
-  type StrategyBreakdown,
-  breakdownByStrategy,
-  resolveRunStrategies,
-  NOISE_NOTE,
-} from './backtest.js';
+export { loadKlines, lastClosedIndex, visibleWindow, mergeBars, mergeSpans, missingSpans, spansFromBars, fetchKlineRange, fetchKlineSpan, ticker24hFromBars, type Span } from './klines.js';
 export {
   StrategyLibrary,
   BUILTIN_STRATEGIES,
@@ -82,7 +46,6 @@ export {
   type StrategyEvidenceLine,
 } from './strategies.js';
 export { reversionStats, reversionCell, emaSeries as reversionEmaSeries, atrSeries as reversionAtrSeries, DEFAULT_KS, DEFAULT_HORIZONS, MIN_BARS as REVERSION_MIN_BARS, type ReversionStats, type ReversionCell } from './reversion-stats.js';
-export { strategyRoutes, nextStatus } from './routes-strategies.js';
 export { DemoStore } from './store.js';
 export { DemoRuntime, type RuntimeOptions } from './runtime.js';
 export { createServer } from './http.js';

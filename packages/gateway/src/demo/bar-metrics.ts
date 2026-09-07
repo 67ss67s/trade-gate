@@ -19,10 +19,10 @@
 //   `prior` = the 20-bar high EXCLUDING the current bar — what triggers.ts compares against, and the
 //             normal meaning of "closed above the breakout level". Screening uses `prior`.
 
-import { lastClosedIndex } from './backtest.js';
+import { lastClosedIndex } from './klines.js';
 import { atrPctFloor } from './review-metrics.js';
 import { dailyRegime, ema, fetchFundingRateHistory, tfToMs } from './market.js';
-import { loadKlines } from './backtest.js';
+import { loadKlines } from './klines.js';
 import { openTrade, stepTrade, tradeR } from './outcome.js';
 import type { DailyRegime, Direction, Kline } from './types.js';
 // ---------------------------------------------------------------- 条件与阈值

@@ -80,10 +80,10 @@ afterAll(async () => {
 });
 
 // backtest.ts reads both env vars as module-level consts → import AFTER they are set.
-type BacktestModule = typeof import('../../src/demo/backtest.js');
+type BacktestModule = typeof import('../../src/demo/klines.js');
 let bt: BacktestModule;
 beforeAll(async () => {
-  bt = await import('../../src/demo/backtest.js');
+  bt = await import('../../src/demo/klines.js');
 });
 
 // ---------------------------------------------------------------- pure span algebra

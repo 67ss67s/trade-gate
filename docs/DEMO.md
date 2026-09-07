@@ -12,9 +12,9 @@ at 1440×900, UI language EN (top bar).
 | 1:00 | Judgments | Open the newest episode: evidence `E1..En`, the exact prompt, the raw model answer, every gate with its reason | "The model sees a numbered evidence registry and answers NO_TRADE, WATCH or PROPOSE with citations. Nothing else. Most of the time the right answer is WATCH." |
 | 1:25 | Agent | Ask "why not long BTC?"; the agent answers from `get_episode`. Toggle auto-approve off, ask it to propose a trade → confirmation card with one-time token | "The chat desk has the same tools. Anything that moves money becomes an intent you approve." |
 | 1:50 | Trade | Place a manual order (margin × leverage → quantity, stop, take-profit); thread goes pending → in position; protective legs in the open-orders list. Top bar shows *binance-cli · Demo Trading* | "Execution through Binance Agent OS: every order goes through the official binance-cli. The stop is mandatory — if it cannot be placed the position is flattened." |
-| 2:20 | Replay / Strategy library | Scrub the replay; judgments appear only as bars close. Show a strategy version and its promotion ladder | "Blind replay: the agent sees only what was visible then. Rules are versioned data, promoted one step at a time." |
+| 2:20 | Trade review | Closed threads with R multiples, the judgment timeline of one trade | "Every trade keeps its judgments; you can ask the agent why." |
 | 2:35 | Top bar | Type `HALT`; threads flatten; loop refuses new entries | "Emergency stop, typed confirmation." |
-| 2:45 | Home, scroll down + Floor | Layer 2 locked cards; the ops floor with masked desks | "Under the floor: Reviewer, Memory, Strategy Lab, Portfolio & Risk Sentinel, Captain. Running in our private build, still in testing, coming to this repo." |
+| 2:45 | Home, scroll down + Floor | Layer 2 locked cards; the ops floor with masked desks | "Under the floor: Reviewer, Memory, Strategy Lab with blind replay, Portfolio & Risk Sentinel, Captain. Running in our private build, still in testing, coming to this repo." |
 | 2:55 | README | Agent OS section, repo link | "MIT, one command to run, no keys needed for the first run." |
 
 Fallbacks: if no PROPOSE appears during recording, the manual order in step 1:50 carries the execution story;

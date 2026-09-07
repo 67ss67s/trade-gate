@@ -7,7 +7,6 @@ import type http from 'node:http';
 import type { DemoRuntime } from './runtime.js';
 import type { DemoStore } from './store.js';
 import { indicatorRoutes } from './routes-indicators.js';
-import { strategyRoutes } from './routes-strategies.js';
 import { screenerRoutes } from './routes-screener.js';
 
 export type RouteHandler = (req: http.IncomingMessage, res: http.ServerResponse, url: URL, params: Record<string, string>) => Promise<void>;
@@ -31,5 +30,4 @@ export const extraRouteModules: RouteModule[] = [
   // ---- register below (one line per module; keep alphabetical)
   indicatorRoutes,
   screenerRoutes,
-  strategyRoutes,
 ];

@@ -15,9 +15,9 @@
   │collects│    │ judges │    │  plans   │    │ gates  │    │  sends &  │
   │        │    │ (model)│    │  (code)  │    │ (code) │    │  tracks   │
   └────────┘    └────────┘    └──────────┘    └────────┘    └───────────┘
-   info officer  NO_TRADE      versioned       code gates    paper ·
-   screener      WATCH         strategy        + sizing      binance-cli ·
-   E1..En        PROPOSE       library         reasons       Binance MCP
+   info officer  NO_TRADE      rules as        code gates    paper ·
+   screener      WATCH         data,           + sizing      binance-cli ·
+   E1..En        PROPOSE       playbook        reasons       Binance MCP
       │              │              │              │              │
       └──── evidence ┴─── judgment ─┴──── plan ────┴─── verdict ───┘
                      every hand-off is a typed object,
@@ -81,8 +81,8 @@ nothing. Requires Node ≥ 24. Rust is only needed for the optional `demo` execu
    or use the Binance MCP Server through Claude Code: `claude "/mcp"` → authenticate `binance-mcp-server`,
    then `TG_DEMO_BACKEND=agent_mcp ./start-demo.sh`. Run the stop-leg canary from the execution panel
    before the first entry.
-9. **Replay and iterate** — *Replay* walks history bar by bar with the agent seeing only what was visible;
-   *Strategy library* versions every rule change; `npm test` runs ~680 offline tests.
+9. **Iterate** — *Trade review* shows closed threads with R multiples and the judgment timeline; `npm test`
+   runs ~650 offline tests.
 10. **Emergency stop** — type `HALT` in the top bar; everything flattens and new entries are refused until
     you resume.
 
@@ -133,10 +133,9 @@ Details in [`docs/AGENT-OS.md`](docs/AGENT-OS.md).
    Unknown citations, an illegal action, a missing direction → one repair round, then fail-closed to
    `NO_TRADE` (scan) or `HOLD` (review). The chat desk exposes the same tools, and money-moving tools there
    only *propose*.
-3. **STRATEGY** — a versioned strategy library (breakout-retest, range mean-reversion, …): rules, parameters,
-   trigger kinds and timeframe floors as data. A parameter change creates a new draft version; promotion moves
-   one step at a time. The replay page walks historical K-lines bar by bar and shows the judgments the agent
-   would have made with only what was visible at the time.
+3. **STRATEGY** — rules as data: built-in strategies (breakout-retest, range mean-reversion, …) with
+   parameters, trigger kinds and timeframe floors. The model may only pick from the active set; the
+   playbook text in the workflow panel adds guidance without changing the rules.
 4. **RISK** — code gates on every proposal: stop side and distance, confidence floor, risk % of equity,
    notional cap, liquidity cap, max open threads, daily opens, daily-loss stop, evidence freshness, daily
    judgment cap. Sizing is `equity × risk% / stop distance`, rounded to exchange step size, refused below the
@@ -156,7 +155,7 @@ everything.
 
 Open the home page and scroll below the five stations. The second layer watches the first: **Reviewer**
 (post-trade attribution in R multiples), **Memory** (human-approved lessons recalled as evidence beside
-`E1..En`), **Strategy Lab** (pre-registered experiments on replayable episodes), **Captain & Council**
+`E1..En`), **Strategy Lab** (versioned strategies, blind replay and pre-registered experiments), **Captain & Council**
 (daily brief and cross-role hand-offs), **Portfolio & Risk Sentinel** (cluster exposure, correlated stops,
 capacity), and the **Ops Floor** (one screen where every role sits at its desk). They exist in our private
 build and are still in testing; they will be added to this repository as they pass. Not part of this release. [`docs/ROADMAP.md`](docs/ROADMAP.md) says
@@ -169,13 +168,13 @@ packages/
   gateway/     the runtime (TypeScript, Node ≥ 24, no web framework)
     src/demo/  info.ts · screener.ts · radar.ts · indicators.ts · market.ts   ← RADAR
                context.ts · graph.ts · schema.ts · brain.ts · chat.ts        ← THESIS
-               strategies.ts · backtest.ts                                   ← STRATEGY
+               strategies.ts · klines.ts                                     ← STRATEGY
                gates.ts · workflow.ts · triggers.ts                          ← RISK
                execution*.ts · threads.ts · runtime.ts · http.ts             ← EXECUTION, loop, API
     src/migrations/   sqlite schema
     test/             vitest (≈ 690 tests, no network)
   webui/       Vite + React 18 + Tailwind v4 + shadcn — home, intel, screener, watch params, agent,
-               judgments, strategies, replay, trade, history, logs, settings
+               judgments, trade, trade review, logs, settings
   contracts/   JSON-schema contracts shared by gateway, UI and the Rust side
 crates/        contracts-rs · exec-core (Binance REST executor) · execd (credential holder, optional)
 skills/        SKILL.md for host agents

@@ -5,7 +5,7 @@ import http from 'node:http';
 import type { DemoRuntime } from './runtime.js';
 import type { DemoStore } from './store.js';
 import { fetchKlines, tfToMs } from './market.js';
-import { BacktestManager, estimateBacktest, loadKlines, normalizeParams as normalizeBacktestParams } from './backtest.js';
+import { loadKlines } from './klines.js';
 import type { BrainKind, ManualOrderRequest, ThreadStatus } from './types.js';
 import { brainCatalog, testBrain } from './brain.js';
 import { claudeLoginCommand, CODEX_MCP_BLOCKED_DETAIL, claudeLoginInstructions, codexLoginInstructions, DEFAULT_MCP_NAME, DEFAULT_MCP_URL, openTerminalWith, type TerminalOpener } from './execution-agent.js';
@@ -36,7 +36,7 @@ async function readBody(req: http.IncomingMessage): Promise<Record<string, unkno
   return JSON.parse(raw) as Record<string, unknown>;
 }
 
-const EVENTS = ['loop.state', 'episode.started', 'episode.progress', 'episode.finished', 'strategy.changed', 'intent.changed', 'account.updated', 'market.tick', 'log', 'market_state.updated', 'thread.changed', 'chat.message', 'queue.state', 'workflow.changed', 'activity', 'execution.changed', 'backtest.progress', 'backtest.changed', 'screener.changed', 'workflow.proposal'] as const;
+const EVENTS = ['loop.state', 'episode.started', 'episode.progress', 'episode.finished', 'strategy.changed', 'intent.changed', 'account.updated', 'market.tick', 'log', 'market_state.updated', 'thread.changed', 'chat.message', 'queue.state', 'workflow.changed', 'activity', 'execution.changed', 'screener.changed', 'workflow.proposal'] as const;
 
 export interface ServerOptions {
   /** How `/api/execution/connect` pops the interactive `claude` login; injectable so tests open nothing. */
@@ -335,40 +335,6 @@ export function createServer(rt: DemoRuntime, store: DemoStore, options: ServerO
     json(res, 200, { ok: true });
   });
 
-  // ---- backtest / replay(design notes)
-  // 盲测:每根 K 线只喂当时可见的数据给同一套 buildContext + 契约 + 闸。花钱的动作(POST /api/backtest)
-  // 前端必须先拿 estimate 给用户看 ¥ 再确认;回测不受每日判断上限约束,但花费单独在 summary 里算。
-  const backtests = new BacktestManager({
-    store,
-    brainFor: (kind, model) => rt.brainFor(kind, model),
-    workflow: () => rt.workflow,
-    emit: (event, data) => rt.emit(event, data),
-    log: (level, message) => rt.log(level, 'backtest', message),
-  });
-  const backtestParams = (raw: Record<string, unknown>): { params: ReturnType<typeof normalizeBacktestParams>['params']; errors: string[] } => normalizeBacktestParams(raw, rt.workflow);
-  const paramsFromQuery = (url: URL): Record<string, unknown> => {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of url.searchParams) out[k] = k === 'from' || k === 'to' || k === 'max_judgments' || k === 'horizon_bars' ? Number(v) : v === 'true' ? true : v === 'false' ? false : v;
-    return out;
-  };
-  route('GET', '/api/backtest/estimate', guarded(async (_req, res, url) => {
-    const { params, errors } = backtestParams(paramsFromQuery(url));
-    if (errors.length) return json(res, 400, { error: { code: 'invalid', message: errors.join('; ') }, errors });
-    json(res, 200, await estimateBacktest(params, rt.workflow, backtests.brainName(params)));
-  }));
-  route('GET', '/api/backtest', async (_req, res, url) => json(res, 200, { runs: backtests.list(Math.min(200, Number(url.searchParams.get('limit') ?? '50'))), running: backtests.isRunning() }));
-  route('POST', '/api/backtest', guarded(async (req, res) => {
-    const { params, errors } = backtestParams(await readBody(req));
-    if (errors.length) return json(res, 400, { error: { code: 'invalid', message: errors.join('; ') }, errors });
-    const { run, error } = backtests.start(params);
-    json(res, error ? 409 : 202, { run, error });
-  }));
-  route('GET', '/api/backtest/:id', async (_req, res, _url, p) => {
-    const found = backtests.get(p['id']!);
-    if (!found) return fail(res, 404, 'no such backtest', 'not_found');
-    json(res, 200, found);
-  });
-  route('POST', '/api/backtest/:id/cancel', async (_req, res, _url, p) => json(res, 200, { cancelled: backtests.cancel(p['id']!) }));
   /**
    * Deep historical klines for the replay chart. Binance's /fapi/v1/klines caps a single call at 1500
    * bars, so loadKlines pages backwards for us and keeps a disk cache of both the bars and the spans it

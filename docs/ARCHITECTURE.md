@@ -9,7 +9,7 @@ exchange credential lives outside the TypeScript process.
  │                                                                                                      │
  │  RADAR            THESIS               STRATEGY          RISK             EXECUTION                  │
  │  info.ts          context.ts           strategies.ts     gates.ts         threads.ts                 │
- │  screener.ts      graph.ts             backtest.ts       workflow.ts      execution.ts (paper/demo)  │
+ │  screener.ts      graph.ts             klines.ts         workflow.ts      execution.ts (paper/demo)  │
  │  radar.ts         schema.ts                              triggers.ts      execution-cli.ts           │
  │  market.ts        brain.ts                                                execution-agent.ts         │
  │  indicators.ts    chat.ts                                                 outcome.ts                 │
@@ -88,12 +88,11 @@ episode {
 
 ### STRATEGY
 
-- `strategies.ts` — the versioned library. A strategy is data: params with ranges, rules text, trigger
-  kinds, timeframe floor, status (`draft → backtest → paper → live`), `eval_stats`. Editing params creates
-  a new draft version; `promote` moves exactly one step; `retire` is terminal.
-- `backtest.ts` — the blind replay: walk historical klines, rebuild the evidence registry at each close with
-  only what was visible then, ask the brain, apply the same gates, simulate fills. Cost is estimated first
-  (`POST /api/backtest/estimate`) because every step is a model call.
+- `strategies.ts` — strategies are data: params with ranges, rules text, trigger kinds, timeframe floor,
+  and a deterministic checklist the context builder renders as evidence. The workflow's `active_strategies`
+  is the set the model may name in a PROPOSE; a PROPOSE naming none (when any were offered) is rejected.
+- `klines.ts` — paged kline history with an on-disk cache and "visible as of T" window helpers shared by
+  the screener, indicators and the context builder.
 
 ### RISK
 
@@ -121,8 +120,7 @@ episode {
 
 One sqlite file (`~/.trade-gate/demo/state.sqlite`, override with `TG_DEMO_HOME` / `TG_DEMO_DB`). Migrations
 in `packages/gateway/src/migrations/` are applied in order on boot. Tables: episodes, threads, intents,
-orders, equity points, information events, market states, workflow (kv), strategies + versions, backtests,
-screens + candidates, chat sessions + messages, logs, activity.
+orders, equity points, information events, market states, workflow (kv), strategies, screens + candidates, chat sessions + messages, logs, activity.
 
 ## Contracts
 
@@ -138,15 +136,12 @@ GET  /api/episodes  /api/episodes/:id  /api/threads  /api/threads/:id  /api/inte
 GET  /api/market-state  /api/market-state/history  /api/info/events  /api/info/sources
 GET  /api/market/klines  /api/market/klines/history  /api/market/indicators  /api/market/indicators/sets  /api/market/regime
 GET  /api/screener/latest  /api/screener/history  /api/screener/:id
-GET  /api/strategies  /api/strategies/active  /api/strategies/:id  /api/backtest  /api/backtest/:id
 GET  /api/workflow  /api/workflow/proposals  /api/brains  /api/execution  /api/execution/protection
 GET  /api/orders/open  /api/positions  /api/chat/messages  /api/chat/sessions
 POST /api/run-now  /api/scan-now  /api/info/run-now  /api/screener/run  /api/screener/:id/apply
 POST /api/threads/:id/review  /api/threads/:id/close  /api/positions/:symbol/adopt
 POST /api/intents/:id/confirm-token  /api/intents/:id/approve  /api/intents/:id/reject  /api/intents/:id/cancel
 POST /api/workflow  /api/workflow/proposals/:id/{confirm-token,apply,reject}  /api/settings
-POST /api/strategies  /api/strategies/:id/{promote,propose-version,retire}
-POST /api/backtest  /api/backtest/estimate  /api/backtest/:id/cancel
 POST /api/orders  /api/execution/{check,connect,net-check,verify-protection}
 POST /api/brains/test  /api/chat/messages  /api/chat/reset  /api/chat/sessions  /api/chat/sessions/:id
 POST /api/pause  /api/resume  /api/halt
