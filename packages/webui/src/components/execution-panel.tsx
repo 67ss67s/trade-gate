@@ -235,6 +235,26 @@ export function ExecutionPanel() {
           </div>
         </div>
       ))}
+      {/* Binance MCP through Claude Code: always visible until the agent_mcp channel is selected AND connected. */}
+      {backend !== 'agent_mcp' || conn?.status !== 'connected' ? (
+        <div className="mx-3 mt-2 rounded-md border border-warn/40 bg-warn/10 px-2.5 py-2 text-[11.5px] leading-relaxed">
+          <div className="mb-1 flex items-center gap-1.5 font-medium">
+            <Badge variant="outline" className="h-4 border-warn/50 px-1 text-[9.5px] text-warn">Binance MCP</Badge>
+            {backend === 'agent_mcp' ? t('币安官方 MCP 还没登录') : t('币安官方 MCP(经 Claude Code)')}
+          </div>
+          <div className="text-muted-foreground">{t('点「用 Claude 登录币安」会弹一个终端跑 claude "/mcp":选 binance-mcp-server → Authenticate → 浏览器里同意。回来后切到该通道并检查连接;网关不保存任何 token。')}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <Button size="xs" disabled={connect.isPending} onClick={() => connect.mutate()}>
+              {connect.isPending ? <Loader2 className="size-3 animate-spin" /> : null}{t('用 Claude 登录币安')}
+            </Button>
+            {backend !== 'agent_mcp' ? (
+              <Button size="xs" variant="outline" disabled={!canSwitch || save.isPending} onClick={() => pickBackend('agent_mcp')}>{t('切到币安官方 MCP')}</Button>
+            ) : (
+              <Button size="xs" variant="outline" disabled={check.isPending} onClick={() => check.mutate()}>{t('检查连接')}</Button>
+            )}
+          </div>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-1.5 px-3 py-2">
         {options.length === 0 ? (
           <span className="num text-[12px]">{backendLabel(backend)}</span>
