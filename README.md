@@ -29,6 +29,22 @@ with citations. It never sets a quantity, a leverage or a margin mode. Every jud
 **episode** — the exact text the model saw, its raw output, the validation errors, every gate's verdict, the
 resulting thread transition — and the UI's judgment page *is* the replay.
 
+## Open build vs. private build
+
+This repository is the **open build** of TradeGate. There is also a **private build** we run ourselves.
+The two share the same pipeline — roughly 90% of the flow is identical: the same five stations, the same
+episode format, the same gates, the same execution chain and the same Agent OS channels. What the private
+build adds is the second layer described below: the Reviewer that grades every trade, the Memory that
+feeds approved lessons back into the prompt, the Strategy Lab that versions and replays rules before they
+change, the Portfolio & Risk Sentinel, and the Captain that coordinates the team. Those modules are what
+turn a pipeline that runs into a pipeline that improves.
+
+Measured on our own desk, the open build reaches about 50–60% of the private build's performance: it
+judges with the same discipline but does not yet learn from its own history, size against the whole book,
+or promote a rule only after it has been measured. We are releasing the open build first because the
+foundation — judgment separated from money, every decision replayable, nothing hidden in the prompt — is
+the part we think every trading agent should start from. The rest will land here as it passes our tests.
+
 ## Why
 
 Language models are unusually good at the part of trading that is judgment — reading a situation, weighing
