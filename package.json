@@ -1,0 +1,25 @@
+{
+  "name": "trade-gate",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "agent-first trading gateway: TS gateway + Rust execd + React UI (see docs/design)",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "generate": "npm run generate --workspaces --if-present",
+    "generate:check": "npm run generate:check --workspaces --if-present",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "check": "npm run generate:check && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}
